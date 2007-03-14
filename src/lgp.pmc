@@ -13,67 +13,65 @@ typedef struct lgp_indi {
     size_t			size;
 } t_lgp_indi;
 
-
-t_lgp_indi pop[1000000];
-//opcode_t *code[1000000][100];
+t_lgp_indi pop[100000];
 
 
 static void
-dump_from_to( Interp* interpreter, opcode_t *pc, opcode_t *pc_end ) {
+Parrot_dump_from_to( Interp* interp, opcode_t *pc, opcode_t *pc_end ) {
 
 	op_info_t* info;
 	int j;
 	while ( pc < pc_end ) {
-		info = &interpreter->op_info_table[*pc];
+		info = &interp->op_info_table[*pc];
 		// p = full_name ? info->full_name : info->name;
-		printf( "%p", pc );
+		PIO_printf(interp, "%p", pc );
 
-//	        printf( " %3i", ( pc - sub->seg->base.data ) / sizeof(*pc) );
-		printf( " +%d", info->op_count );
+//	        PIO_printf(interp, " %3i", ( pc - sub->seg->base.data ) / sizeof(*pc) );
+		PIO_printf(interp, " +%d", info->op_count );
 
-		printf( " %4ld", *pc );
-		printf( " %s", info->full_name );
+		PIO_printf(interp, " %4ld", *pc );
+		PIO_printf(interp, " %s", info->full_name );
 		for (j = 1; j < info->op_count; j++) {
 			INTVAL i = 0;
 			switch (info->types[j-1]) {
 				case PARROT_ARG_I:
-					printf(" I");
+					PIO_printf(interp," I");
 					goto INTEGER;
 				case PARROT_ARG_N:
-					printf(" N");
+					PIO_printf(interp," N");
 					goto INTEGER;
 				case PARROT_ARG_S:
-					printf(" S");
+					PIO_printf(interp," S");
 					goto INTEGER;
 				case PARROT_ARG_P:
-					printf(" P");
+					PIO_printf(interp," P");
 					goto INTEGER;
 				case PARROT_ARG_IC:
-					printf(" ");
+					PIO_printf(interp," ");
 					if ((j == info->op_count - 1) &&
 						(info->jump & PARROT_JUMP_RELATIVE))
 					{
-						if (pc[j] > 0) printf("+");
+						if (pc[j] > 0) PIO_printf(interp,"+");
 						i = pc[j];
 					}
 
 					INTEGER:
 					if (i == 0) i = (INTVAL) pc[j];
-					printf(INTVAL_FMT, i);
+					PIO_printf(interp,INTVAL_FMT, i);
 					break;
 
 				default:
-					printf( " |" );
-					printf(INTVAL_FMT, (INTVAL) pc[j]);
-					printf( "|" );
+					PIO_printf(interp, " |" );
+					PIO_printf(interp,INTVAL_FMT, (INTVAL) pc[j]);
+					PIO_printf(interp, "|" );
 					break;
 
 			}
 			if (j != info->op_count - 1)
-				printf(",");
+				PIO_printf(interp,",");
 		}
 
-		printf( "\n" );
+		PIO_printf(interp, "\n" );
 		pc += info->op_count;
 	}
 }
@@ -81,12 +79,12 @@ dump_from_to( Interp* interpreter, opcode_t *pc, opcode_t *pc_end ) {
 
 pmclass LGP dynpmc need_ext extends Sub {
 
-
     void* invoke (void* next) {
         struct Parrot_sub * const sub = PMC_sub(SELF);
         opcode_t *pc;
         opcode_t *pc_end;
 
+		// todo - move to init_indi method
 		if ( ! init_done ) {
 			// find INDI_CORE
 			op_info_t* info;
@@ -94,16 +92,16 @@ pmclass LGP dynpmc need_ext extends Sub {
 			epc_end = sub->seg->base.data + sub->end_offs;
 
 			pc = epc_start;
-			while ( pc < epc_end ) {
-				if ( *pc == 15 ) {
-					//printf( "bsr to +%ld\n", (INTVAL) pc[1] );
-					ipc_start = pc + pc[1];
-					break;
-				}
-				info = &interpreter->op_info_table[*pc];
-				pc += info->op_count;
+			if ( *pc != 15 ) {
+				PIO_printf(INTERP, "First instruction is not bsr\n");
+				exit;
 			}
+			PIO_printf(INTERP, "bsr to +%ld\n", (INTVAL) pc[1] );
+			ipc_start = pc + pc[1];
+			info = &interpreter->op_info_table[*pc];
+			pc += info->op_count;
 			ipc_end = epc_end;
+
 			init_done = 1;
 		}
 
@@ -112,47 +110,41 @@ pmclass LGP dynpmc need_ext extends Sub {
 
 
     METHOD void init_indi() {
-		*epc_start = 1;
-	}
-
-
-    METHOD void new_indi() {
-//    init_prederef(interpreter, PARROT_CGP_CORE);
-//    pc_prederef = interpreter->code->prederef.code + (pc - code_start);
-//    pc = cgp_core((opcode_t*)pc_prederef, interpreter);
-
-		*(ipc_start + 5) = 3;
-		*(ipc_start + 9) = 413;
-		*(ipc_start + 10) = 25;
-		*(ipc_start + 11) = 16;
+		// replace "bsr INDI_CORE" with "noop", "noop"
+		*(epc_start + 0) = 1;
+		*(epc_start + 1) = 1;
 	}
 
 
     METHOD void gvdump() {
-		printf( "eval core start: %p\n", epc_start );
-		printf( "indi core start: %p\n", ipc_start );
-		printf( "indi core end  : %p\n", ipc_end );
-		printf( "eval core end  : %p\n", epc_end );
+		PIO_printf(INTERP, "eval code start: %p\n", epc_start );
+		PIO_printf(INTERP, "indi core start: %p, indi relative start: %i\n", ipc_start, (INTVAL)(ipc_start-epc_start) );
+		PIO_printf(INTERP, "indi core end  : %p, indi relative end  : %i, indi len: %i\n",
+			ipc_end,
+			(INTVAL)(ipc_end-epc_start),
+			(INTVAL)(ipc_end-ipc_start)
+		);
+		PIO_printf(INTERP, "eval code end  : %p, eval relative end  : %i\n", epc_end, (INTVAL)(epc_end-epc_start) );
 	}
 
 
     METHOD void edump() {
-		dump_from_to(INTERP, epc_start, epc_end );
+		Parrot_dump_from_to(INTERP, epc_start, epc_end );
     }
 
 
     METHOD void idump() {
-		dump_from_to(INTERP, ipc_start, ipc_end );
+		Parrot_dump_from_to(INTERP, ipc_start, ipc_end );
     }
 
 
     METHOD STRING* test() {
 		char cstr[20];
-		char * str = cstr;
+		char *str = cstr;
 
         struct Parrot_sub * const sub = PMC_sub(SELF);
         opcode_t *pc;
-        pc = sub->seg->base.data + sub->start_offs;
+        pc = ipc_start;
 
 		op_info_t* info;
   		info = &interpreter->op_info_table[*pc];

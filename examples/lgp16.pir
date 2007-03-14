@@ -102,7 +102,7 @@ F_RUN:
 	.local int temp
 	.local pmc parents
 	.local int max_inum
-	max_inum = pop_size * 25
+	max_inum = pop_size * 50
 
 F_NEXT_RUN:
 #	print "running "
@@ -128,22 +128,20 @@ F_NEXT_RUN:
 	temp = parents[2]
 	engine."copy_to_temp"(temp,0)
 
-#    print "temp_indi_code("
-#	print I30
-#	print "):\n"
+#    print "temp_indi_code(0):\n"
 #    engine."temp_indi_code"(0)
 #    print "\n"
 	
 	engine."mutate_temp_naive"(0)
 
-#    print "temp_indi_code("
-#	print I30
-#	print ") after mutation:\n"
+#    print "temp_indi_code(0):\n"
 #    engine."temp_indi_code"(0)
 #    print "\n"
 #	ret # debug
 
+#	print "load_temp_indi(0)\n"
 	engine."load_temp_indi"(0)
+#	print "eval_body\n"
 	nfi2 = eval_body()
 	temp = parents[0]
 	ofi0 = engine."indi_fitness"(temp)
@@ -202,7 +200,9 @@ F_SKIP_LT2:
 #	print "running "
 #	print inum
 #	print " [ok]\n\n"
+
     inc inum
+
     temp = inum % pop_size
     if temp != 0 goto SKIP_PRINT_INUM
     print "gen "
@@ -218,7 +218,6 @@ F_SKIP_LT2:
     print " )\n"
 SKIP_PRINT_INUM:    
     if inum < max_inum goto F_NEXT_RUN
-#    if inum < 900 goto F_NEXT_RUN
     print "\n"
 ret
 

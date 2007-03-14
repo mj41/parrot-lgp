@@ -392,75 +392,103 @@ pmclass LGP dynpmc need_ext extends Sub {
 	}
 
     METHOD void mutate_temp_naive (INTVAL temp_inum) {
+	#define DEBUG 0
 		// [operation code] [operands]*
 		opcode_t *ipc_s;
 		size_t rand_position;
 
 		// random
-		rand_position = rand() % ( pop[pop_size + temp_inum].len - 1 );
-
+		rand_position = rand() % (pop[pop_size + temp_inum].len - 1); // last instruction is 'ret'
+		// rand_position = 0; // debug
+		// rand_position = pop[pop_size + temp_inum].len - 2; // debug
 
 		ipc_s = pop[pop_size + temp_inum].code;
 		// Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[pop_size + temp_inum].len) );
 
 		opcode_t *pc, *pc_end, *last_pc;
 		op_info_t* info;
-		int i, j, rop_num, op_num, last_op_count;
-		rop_num = 0;
-		op_num = 0;
+		int i, j, last_op_count;
 
 		pc = ipc_s;
 		pc_end = &*(ipc_s + rand_position);
-		//PIO_printf(INTERP, "----- -----\n" );
-		//PIO_printf(INTERP, "rand pos %3i\n", rand_position );
-		do  {
-			info = &INTERP->op_info_table[*pc];
-			//PIO_printf(INTERP, "%3i +%1i %3i %p %4ld %s\n", rop_num, info->op_count, op_num, pc, *pc, info->full_name );
+	#if DEBUG
+		PIO_printf(INTERP, "----- ----- ----- ----- -----\n" );
+		PIO_printf(INTERP, "rand pos %i (len %i)\n", rand_position, pop[pop_size + temp_inum].len );
+	#endif
+		info = &INTERP->op_info_table[*pc];
+
+		int r_ins_num, op_num;
+		r_ins_num = 1;
+		op_num = 0;
+		op_num += info->op_count;
+
+		while ( pc + info->op_count <= pc_end ) {
+			#if DEBUG
+				//PIO_printf(INTERP, "%3i +%1i %3i %p %4ld %s\n", r_ins_num, info->op_count, op_num, pc, *pc, info->full_name );
+			#endif
 			pc += info->op_count;
-			rop_num++;
+			info = &INTERP->op_info_table[*pc];
+			r_ins_num++;
 			op_num += info->op_count;
-		} while ( pc < pc_end );
+		};
 		//PIO_printf(INTERP, "\n" );
 
-		info = &INTERP->op_info_table[*pc];
-	#if 0
+	#if DEBUG
 		Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
 	#endif
-		INTVAL r_i, r_op_num;
-		i = 0;
-		if ( (info->op_count) > 1 ) {
-			// get random op num
-			// gets one of [1,2] if op_count = 3
-			r_op_num = rand() % ( info->op_count - 1 ) + 1;
-			//PIO_printf(INTERP, "r_op_num: %i, op_count: %i\n", r_op_num, info->op_count );
-			switch (info->types[r_op_num]) {
-				case PARROT_ARG_I:
-					r_i = rand() % (lgp_out_reg_count + lgp_in_reg_count);
-					if ( r_i < lgp_out_reg_count ) {
-						r_i = lgp_out_regs[ r_i ];
-					} else {
-						r_i -= lgp_out_reg_count;
-						r_i = lgp_in_regs[ r_i ];
-					}
-					//PIO_printf(INTERP, "r_i %i z %i: %i\n", j+1, (info->op_count-1), r_i );
-					*(pc + r_op_num) = r_i;
-					break;
+
+		INTVAL r_op_num = 0;
+		// mutate operands
+		if ( rand() % 100 > 20 ) {
+
+			INTVAL r_i;
+			i = 0;
+			if ( (info->op_count) > 1 ) {
+				// get random op num
+				// gets one of [1,2] if op_count = 3
+				r_op_num = rand() % ( info->op_count - 1 ) + 1;
+				//PIO_printf(INTERP, "r_op_num: %i, op_count: %i\n", r_op_num, info->op_count );
+				switch (info->types[r_op_num]) {
+					case PARROT_ARG_I:
+						r_i = rand() % (lgp_out_reg_count + lgp_in_reg_count);
+						if ( r_i < lgp_out_reg_count ) {
+							r_i = lgp_out_regs[ r_i ];
+						} else {
+							r_i -= lgp_out_reg_count;
+							r_i = lgp_in_regs[ r_i ];
+						}
+						//PIO_printf(INTERP, "r_i %i z %i: %i\n", j+1, (info->op_count-1), r_i );
+						*(pc + r_op_num) = r_i;
+						break;
+				}
+			}
+
+		// mutate instruction num
+		} else {
+			op_info_t* r_info;
+			INTVAL op_num;
+			// find same length or shorter instruction
+			do {
+				r_op_num = lgp_ops[ rand() % lgp_op_count ];
+	  			r_info = &INTERP->op_info_table[r_op_num];
+				//PIO_printf(INTERP, "%i (%i), ", r_op, info->op_count-1 );
+			} while ( r_info->op_count > info->op_count );
+		#if DEBUG
+			PIO_printf(INTERP, "ins %i -> %i, op_count %i -> %i\n", *pc, r_op_num, info->op_count, r_info->op_count );
+		#endif
+			*pc = r_op_num;
+			for ( i=r_info->op_count; i<info->op_count; i++ ) {
+				//PIO_printf(INTERP, "%i\n", i );
+				*(pc + i) = 1; // noop
 			}
 		}
 
-	#if 0
-		PIO_printf(INTERP, "rand %i, %i\n", rop_num, r_op_num );
-		if ( (info->op_count) > 1 ) {
-			info = &INTERP->op_info_table[*pc];
-			Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
-		} else {
-			PIO_printf(INTERP, " can't change this op\n", rop_num, r_op_num );
-		}
+	#if DEBUG
+		PIO_printf(INTERP, "rand %i, %i\n", r_ins_num, r_op_num );
+		Parrot_dump_from_to(INTERP, pc, pc + info->op_count);
 		PIO_printf(INTERP, "\n" );
+		PIO_printf(INTERP, "----- ----- ----- ----- -----\n" );
 	#endif
-
-		//PIO_printf(INTERP, "----- -----\n" );
-
 
 	}
 

@@ -8,7 +8,7 @@
  *
  */
 
-#define MAX_POP_SIZE 50000
+#define MAX_POP_SIZE 250000
 #define INDI_MAX_LEN 50
 #define FIGHT_NUM 2
 

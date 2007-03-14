@@ -101,9 +101,9 @@ F_RUN:
 	.local pmc parents
 
 F_NEXT_RUN:
-#	print "running "
-#    print inum
-#    print "\n"
+	print "running "
+    print inum
+    print "\n"
 	
 	# 0 is worst, 3 is best (less fitness)
 	parents = engine."get_parents"()

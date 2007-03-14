@@ -1,4 +1,5 @@
 #include "parrot/parrot.h"
+#include "lgp_conf.h"
 
 int init_done = 0;
 opcode_t *epc_start;
@@ -137,6 +138,20 @@ pmclass LGP dynpmc need_ext extends Sub {
 		Parrot_dump_from_to(INTERP, ipc_start, ipc_end );
     }
 
+    METHOD INTVAL ops_num() {
+		return (INTVAL) LGP_OPS_NUM;
+	}
+
+	METHOD PMC* ops() {
+		PMC *array;
+		array = pmc_new(interpreter, enum_class_FixedPMCArray);
+		VTABLE_set_integer_native(interpreter, array, LGP_OPS_NUM );
+		int i;
+		for ( i = 0; i < LGP_OPS_NUM; i++) {
+            VTABLE_set_integer_keyed_int(INTERP, array, i, (INTVAL)lgp_ops[i] );
+		}
+		return array;
+	}
 
     METHOD STRING* test() {
 		char cstr[20];

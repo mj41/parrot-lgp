@@ -32,6 +32,30 @@ PARAM_OK:
     engine."gvdump"()
     print "gvdump() done\n\n"
 
+    print "ops_num: "
+    I0 = engine."ops_num"()
+    print I0
+    print "\n\n"
+
+    print "ops: "
+    P0 = engine."ops"()
+    I0 = P0
+    print "ops_num: "
+    print I0
+    print "\n"
+
+	I1 = 0
+PRINT_NEXT_OP:	
+    I2 = P0[I1]
+    print "op "
+    print I1
+    print ": "
+    print I2
+    print "\n"
+    I1 = I1 + 1
+    if I1 < I0 goto PRINT_NEXT_OP
+    print "\n\n"
+
 #    engine."edump"()
 #    print "edump() done\n\n"
 

@@ -9,8 +9,10 @@ opcode_t *ipc_end;
 
 
 static void
-Parrot_dump_from_to( Interp* interp, opcode_t *pc, opcode_t *pc_end ) {
+Parrot_dump_from_to (Interp* interp, opcode_t *pc, opcode_t *pc_end) {
 
+	//PIO_printf(interp, "----- %p\n", pc );
+	//PIO_printf(interp, "----- %p\n", pc_end );
 	op_info_t* info;
 	int j;
 	while ( pc < pc_end ) {
@@ -18,7 +20,7 @@ Parrot_dump_from_to( Interp* interp, opcode_t *pc, opcode_t *pc_end ) {
 		// p = full_name ? info->full_name : info->name;
 		PIO_printf(interp, "%p", pc );
 
-//	        PIO_printf(interp, " %3i", ( pc - sub->seg->base.data ) / sizeof(*pc) );
+		// PIO_printf(interp, " %3i", ( pc - sub->seg->base.data ) / sizeof(*pc) );
 		PIO_printf(interp, " +%d", info->op_count );
 
 		PIO_printf(interp, " %4ld", *pc );
@@ -111,38 +113,42 @@ pmclass LGP dynpmc need_ext extends Sub {
 
 
     METHOD void initialize (INTVAL indi_num) {
-		opcode_t *ipc;
-		ipc = pop[indi_num].code;
-		//PIO_printf(INTERP, "2--- %p %i\n", (ipc+499), *(ipc+499) );
-		//ipc = &(pop[indi_num].size);
-		//PIO_printf(INTERP, "3--- %p %i\n", ipc, *ipc );
+		opcode_t *ipc_s, *ipc;
+		ipc_s = pop[indi_num].code;
 
-		INTVAL len;
-		do {
-			len = rand() % MAX_LEN;
-		} while ( len < 2 );
-		PIO_printf(INTERP, "b--- %p %i (+%i)\n", ipc, *ipc, len );
-		ipc = &*(ipc + len);
-		PIO_printf(INTERP, "r--- %p %i\n", ipc, *ipc );
+		INTVAL g_last, last;
+		g_last = rand() % (INDI_MAX_LEN-1) + 1;
+		pop[indi_num].fitness = 0;
+		pop[indi_num].len = g_last + 1;
 
+		//PIO_printf(INTERP, "b--- %p %i (+%i)\n", ipc, *ipc, g_last );
+		ipc = &*(ipc_s + g_last);
 		*ipc = (INTVAL)16; // ret
+		//PIO_printf(INTERP, "r--- %p %i\n", ipc, *ipc );
+		last = g_last - 1;
 
 		INTVAL r_op, r_i, j;
 		op_info_t *info;
-		while ( len > 0 ) {
+		while ( last >= 0 ) {
+			//PIO_printf(INTERP, "----------------- %i z %i\n", last+1, g_last+1);
+			//PIO_printf(INTERP, "r_op: " );
 			do {
 				r_op = lgp_ops[ rand() % lgp_op_count ];
 	  			info = &INTERP->op_info_table[r_op];
-			} while ( info->op_count > len );
-			ipc -= info->op_count;
+				//PIO_printf(INTERP, "%i (%i), ", r_op, info->op_count-1 );
+			} while ( info->op_count-1 > last );
+			//PIO_printf(INTERP, "%s \n", info->full_name );
+			ipc = &*(ipc - info->op_count);
 			*ipc = r_op;
-			len -= info->op_count;
+			//Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[indi_num].len) );
+			//PIO_printf(INTERP, "\n");
 
 			for (j = 0; j < (info->op_count-1); j++) {
 				switch (info->types[j]) {
 					case PARROT_ARG_I:
 						r_i = rand() % lgp_in_reg_count;
-						*(ipc+j) = r_i;
+						//PIO_printf(INTERP, "r_i %i z %i: %i\n", j+1, (info->op_count-1), r_i );
+						*(ipc+j+1) = r_i;
 						break;
 					default:
 						PIO_eprintf(INTERP, "Can't generate operand with type=%i, op_count=%i\n", info->types[j], info->op_count );
@@ -150,13 +156,36 @@ pmclass LGP dynpmc need_ext extends Sub {
 						break;
 				}
 			}
+			last = last - info->op_count;
+			//Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[indi_num].len ) );
 		}
-
-
     }
 
 
-    METHOD void gvdump () {
+    METHOD void indi_code (INTVAL indi_num) {
+		// pop[num] individual code dump
+		opcode_t *ipc_s;
+		ipc_s = pop[indi_num].code;
+		Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[indi_num].len ) );
+    }
+
+    METHOD INTVAL indi_len (INTVAL indi_num) {
+		// pop[num] individual len
+		return pop[indi_num].len;
+    }
+
+
+    METHOD void load_indi (INTVAL indi_num) {
+		opcode_t *ipc_src;
+		ipc_src = pop[indi_num].code;
+		// PIO_eprintf(INTERP, "Can't %i\n", (INDI_MAX_LEN*sizeof(opcode_t)) );
+		// todo sizeof
+		memcpy(ipc_start, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
+	}
+
+
+    METHOD void eb_mdump () {
+		// eval body memory dump
 		PIO_printf(INTERP, "eval code start: %p\n", epc_start );
 		PIO_printf(INTERP, "indi core start: %p, indi relative start: %i\n", ipc_start, (INTVAL)(ipc_start-epc_start) );
 		PIO_printf(INTERP, "indi core end  : %p, indi relative end  : %i, indi len: %i\n",
@@ -168,13 +197,15 @@ pmclass LGP dynpmc need_ext extends Sub {
 	}
 
 
-    METHOD void edump () {
-		Parrot_dump_from_to(INTERP, epc_start, epc_end );
+    METHOD void eb_cdump () {
+		// eval body code dump
+		Parrot_dump_from_to(INTERP, epc_start, epc_end);
     }
 
 
-    METHOD void idump () {
-		Parrot_dump_from_to(INTERP, ipc_start, ipc_end );
+    METHOD void ei_cdump () {
+		// eval body individual part code dump
+		Parrot_dump_from_to(INTERP, ipc_start, ipc_end);
     }
 
 

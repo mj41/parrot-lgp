@@ -21,19 +21,22 @@ PARAM_OK:
     print $S0
     print "\n"
     
-    .const .Sub eval = 'eval'
+    .const .Sub eval_body = 'eval_body'
 
 	# todo - replace this first initialization run with pure init_indi method
-    eval()
+    eval_body()
     print "indi() done\n\n"
     engine."init_indi"()
     print "init_indi done\n\n"
 
-    engine."gvdump"()
-    print "gvdump() done\n\n"
+    engine."eb_mdump"()
+    print "eb_mdump() done\n\n"
 
-    engine."idump"()
-    print "idump done\n\n"
+    engine."eb_cdump"()
+    print "eb_cdump done\n\n"
+
+#    engine."ei_cdump"()
+#    print "ei_cdump done\n\n"
 
     print "ops_num: "
     I0 = engine."ops_num"()
@@ -59,35 +62,38 @@ PRINT_NEXT_OP:
     if I1 < I0 goto PRINT_NEXT_OP
     print "\n\n"
 
-#    engine."edump"()
-#    print "edump() done\n\n"
-
-#    engine."idump"()
-#    print "idump done\n\n"
-
-    I31 = eval()
-    print "error: "
-    print I31
-    print "\n\n"
-	
-	print "engine.test():\n"
-	S0 = engine."test"()
-	print S0
-	print "\n"
-
-	print "engine.initialize(0)\n"
-	engine."initialize"(0)
-	print "\n\n"
-
-	branch END
-
     set I30, I29
     
 NEXT_INDI:
-    engine."new_indi"()
-    print "new_indi done\n"
-    I31 = indi()
-    print "indi() done\n"
+	print "engine.initialize("
+	print I30
+	print ")\n"
+	engine."initialize"(I30)
+	print "\n"
+
+    print "indi_code("
+	print I30
+	print "):\n"
+    engine."indi_code"(I30)
+    print "\n"
+
+	print "engine.indi_len("
+	print I30
+	print ") = "
+	I0 = engine."indi_len"(I30)
+	print I0
+	print "\n"
+
+	print "engine.load_indi("
+	print I30
+	print ")\n"
+	engine."load_indi"(I30)
+	print "\n"
+
+    print "fitness = "
+    I0 = eval_body()
+    print I0
+    print "\n"
 
 AGAIN:
     dec I30
@@ -107,7 +113,7 @@ END:
 .HLL "Some", "lgp"
 .HLL_map .Sub, .LGP
 
-.sub eval
+.sub eval_body
 	# hack - todo
 	bsr INDI_CORE
 	
@@ -161,9 +167,9 @@ ERR:
     restore I31
     # error, I3 is indi destination register
     I0 = I3 - I0
-    print "sub error: "
-    print I0
-    print "\n"
+#    print "sub error: "
+#    print I0
+#    print "\n"
     abs I0
     I0 = I0 * I0
     I31 = I31 + I0
@@ -231,120 +237,7 @@ INDI_CORE:
 	noop
 	noop
 
-	# 60
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-
-	# 70
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-
-	# 80
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-
-	# 90
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-
-	# 100
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-
-    I3 += I0
-    I3 += I1
-    I3 += I2
-    I3 += I0
-    I3 += I1
-    I3 += I2
-    I3 += I0
-    I3 += I1
-    I3 += I2
-    I3 += I0
-
-    I3 -= I1
-    I3 -= I2
-    I3 -= I0
-    I3 -= I1
-    I3 -= I2
-    I3 -= I0
-    I3 -= I1
-    I3 -= I2
-    I3 -= I0
-    I3 -= I1
-
-    I3 += I2
-    I3 += I0
-    I3 += I1
-    I3 += I2
-    I3 += I0
-    I3 += I1
-    I3 += I2
-    I3 += I0
-    I3 += I1
-    I3 += I2
-
-    I3 *= I2
-    I3 *= I0
-    I3 *= I1
-    I3 *= I2
-    I3 *= I0
-    I3 *= I1
-    I3 *= I2
-    I3 *= I0
-    I3 *= I1
-    I3 *= I2
-
-    I3 /= I2
-    I3 /= I0
-    I3 /= I1
-    I3 /= I2
-    I3 /= I0
-    I3 /= I1
-    I3 /= I2
-    I3 /= I0
-    I3 /= I1
-    I3 /= I2
+	# 51
     ret
 
 .end

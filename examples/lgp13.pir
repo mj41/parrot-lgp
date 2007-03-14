@@ -24,7 +24,7 @@ PARAMS_DONE:
     print "\n"
 
 	.local int max_pop_size
-	max_pop_size = engine."pop_size"()
+	max_pop_size = engine."max_pop_size"()
     if pop_size <= max_pop_size goto OK_POP_SIZE
     print "Max population size is "
     print max_pop_size
@@ -52,6 +52,11 @@ F_INIT_NEXT:
 	engine."load_indi"(inum)
 
     I0 = eval_body()
+    print inum
+    print " --- "
+    print I0
+    print " :::: "
+    engine."set_indi_fitness"(inum,I0)
     inc inum
     if inum < pop_size goto F_INIT_NEXT
     print "done\n"
@@ -63,42 +68,45 @@ F_RUN:
 	.local int pi1, pi2, pi3, pi4
 	.local int nfi1, nfi2, ofi3, ofi4
 	.local int temp
+	.local pmc parents
 F_NEXT_RUN:
 	print "running "
     print inum
     print "\n"
 	
-	.local pmc parents
-	parents = new .FixedIntegerArray
-	set parents,  4
-	set parents[0], 10
-	set parents[1], 20
-	set parents[2], 30
-	set parents[3], 40
-	print "----\n"
-	ret
-	
 	parents = engine."get_parents"()
 	temp = parents[0]
-	engine."copy_to_temp"(temp,0)
+
+#	engine."copy_to_temp"(temp,0)
+	engine."copy_to_temp0"(temp,0)
 	engine."mutate_temp"(0)
 	engine."load_temp_indi"(0)
 	nfi1 = eval_body()
+
+	temp = parents[2]
+	temp = engine."indi_fitness"(temp)
+	print "fitness "
+	print temp
+	print "\n"
+	
 	temp = parents[2]
 	ofi3 = engine."indi_fitness"(temp)
 	if nfi1 < ofi3 goto F_SKIP_LT1
-	engine."rewrite_by_temp"(temp,0)
+#	engine."rewrite_by_temp"(temp,0)
+	engine."rewrite_by_temp0"(temp)
+    engine."set_indi_fitness"(temp,nfi1)
+
 F_SKIP_LT1:
 
 	temp = parents[1]
-	engine."copy_to_temp"(temp,1)
+	engine."copy_to_temp1"(temp)
 	engine."mutate_temp"(1)
 	engine."load_temp_indi"(1)
 	nfi2 = eval_body()
 	temp = parents[3]
 	ofi4 = engine."indi_fitness"(temp)
 	if nfi2 < ofi4 goto F_SKIP_LT2
-	engine."rewrite_by_temp"(temp,1)
+	engine."rewrite_by_temp1"(temp)
 F_SKIP_LT2:
 		
     inc inum

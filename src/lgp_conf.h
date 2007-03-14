@@ -8,12 +8,12 @@
  *
  */
 
-#define POP_SIZE 100000
+#define POP_SIZE 100
 #define INDI_MAX_LEN 5
 #define FIGHT_NUM 2
 
 typedef struct lgp_indi {
-    double          fitness;
+    INTVAL          fitness;
     opcode_t		code[INDI_MAX_LEN];
     size_t			len;
 } t_lgp_indi;

@@ -13,7 +13,7 @@ sub run_cmd {
     
     my ($st, $out) = sys( $cmd, $wd . '/lgp-' . $cmd . '.out' );
     if ( $st ) {
-        print $cmd . " return: $st\n";
+        print "'$cmd' return: $st\n";
         print $out;
         print "\n";
         return 0;
@@ -32,7 +32,7 @@ chdir('../..') || die;
 
 if ( $ARGV[0] eq '-t' ) {
     print "parrot trace on\n";
-    run_cmd( 'parrot -S -t lgp12.pir', 1 );
+    run_cmd( 'parrot -S -t lgp13.pir', 1 );
     
 } else {
     my $num = ( $ARGV[0] ) ? $ARGV[0] : 5;

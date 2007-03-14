@@ -169,6 +169,7 @@ pmclass LGP dynpmc need_ext extends Sub {
 		Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[indi_num].len ) );
     }
 
+
     METHOD INTVAL indi_len (INTVAL indi_num) {
 		// pop[num] individual len
 		return pop[indi_num].len;

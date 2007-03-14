@@ -25,7 +25,7 @@ PARAM_OK:
 
 	# todo - replace this first initialization run with pure init_indi method
     eval_body()
-    print "indi() done\n\n"
+    print "initial eval_body() done\n\n"
     engine."init_indi"()
     print "init_indi done\n\n"
 
@@ -62,7 +62,29 @@ PRINT_NEXT_OP:
     if I1 < I0 goto PRINT_NEXT_OP
     print "\n\n"
 
-    set I30, I29
+    I30 = 0
+
+#    branch NEXT_INDI
+    branch F_NEXT_INDI
+    
+
+F_NEXT_INDI:
+	engine."initialize"(I30)
+	engine."load_indi"(I30)
+    I0 = eval_body()
+    print I30
+    print ":"
+    print I0
+    print " "
+    inc I30
+    I0 = I30 % 1000
+    if I0 != 0 goto SKIP_NL
+    print "\n"
+SKIP_NL:    
+    if I30 < I29 goto F_NEXT_INDI
+    print "\n"
+    branch END
+
     
 NEXT_INDI:
 	print "engine.initialize("
@@ -90,17 +112,22 @@ NEXT_INDI:
 	engine."load_indi"(I30)
 	print "\n"
 
+    engine."eb_cdump"()
+    print "eb_cdump done\n\n"
+
+    engine."ei_cdump"()
+    print "ei_cdump done\n\n"
+
     print "fitness = "
     I0 = eval_body()
     print I0
     print "\n"
 
-AGAIN:
-    dec I30
+    inc I30
     print "bench_num: "
     print I30
     print "\n"
-    gt I30, 0, NEXT_INDI
+    if I30 < I29 goto NEXT_INDI
     branch END
     
 END:

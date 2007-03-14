@@ -8,7 +8,7 @@
  *
  */
 
-#define POP_SIZE 100000
+#define POP_SIZE 1000000
 #define INDI_MAX_LEN 50
 
 typedef struct lgp_indi {
@@ -30,7 +30,7 @@ INTVAL lgp_out_regs[] = {
 	3
 };
 
-INTVAL lgp_op_count  = 28 - 7;
+INTVAL lgp_op_count  = 29 - 7;
 opcode_t lgp_ops[] = {
 	287, //  0 .. and_i_i_i: i(o), i(i), i(i)
 	290, //  1 .. not_i: i(io)

@@ -378,6 +378,7 @@ pmclass LGP dynpmc need_ext extends Sub {
 		memcpy(ipc_dest, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
 	}
 
+
     METHOD void rewrite_by_temp (INTVAL inum, INTVAL temp_inum) {
 		opcode_t *ipc_src, *ipc_dest;
 		ipc_src = pop[pop_size + temp_inum].code;
@@ -388,6 +389,7 @@ pmclass LGP dynpmc need_ext extends Sub {
 
 
     METHOD void mutate_temp (INTVAL temp_inum) {
+		// [operation code] [operands]*
 		opcode_t *ipc_ti;
 		ipc_ti = pop[pop_size + temp_inum].code;
 	}

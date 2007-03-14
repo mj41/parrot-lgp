@@ -14,7 +14,7 @@ my %names;
 $ops->{OPS} = $Parrot::OpLib::core::ops;
 # print dump( $ops ); exit;
 
-
+my $num = 0;
 foreach my $op ( @{ $Parrot::OpLib::core::ops } ) {
     my $full_name = $op->full_name;
     my $jump      = $op->jump || 0;
@@ -33,7 +33,7 @@ foreach my $op ( @{ $Parrot::OpLib::core::ops } ) {
     }
     
     if ( $raw_i_type && !$jump && $flags eq ':base_core'  ) {
-        print "$code $full_name: ";
+        print "$code, // $num ... $full_name: ";
         foreach my $arg_num ( 0..$arg_count-1 ) {
             print ", " if $arg_num > 0;
             print $arg_types[ $arg_num ];
@@ -42,6 +42,7 @@ foreach my $op ( @{ $Parrot::OpLib::core::ops } ) {
 #        print ", arg_count:$arg_count, flags: $flags, jump:$jump";
         print "\n";
 #        print dump( $op );
+        $num++;
     }
 
 }

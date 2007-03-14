@@ -16,7 +16,7 @@ my $cmd;
 #$cmd = 'parrot.exe -g lgp12.pir 100000'; # 10 x 100tis
 #$cmd = 'parrot.exe -j lgp12.pir 100000'; # 10 x 100tis
 #$cmd = 'parrot.exe -S lgp12.pir 100000'; # 10 x 100tis
-$cmd = 'parrot.exe lgp13.pir'; # 10 x 100tis + 900tis
+$cmd = 'parrot.exe lgp13.pir 100000'; # 10 x 100tis + 900tis
 
 
 my $num = 100;

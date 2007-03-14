@@ -371,20 +371,12 @@ pmclass LGP dynpmc need_ext extends Sub {
 
 
     METHOD void copy_to_temp (INTVAL inum, INTVAL temp_inum) {
-		opcode_t *ipc_src, *ipc_dest;
-		ipc_src = pop[inum].code;
-		ipc_dest = pop[pop_size + temp_inum].code;
-		// PIO_eprintf(INTERP, "Will copy %i bytes, from %p to %p\n", (INDI_MAX_LEN*sizeof(opcode_t)), ipc_src, ipc_start );
-		memcpy(ipc_dest, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
+		memcpy( &pop[pop_size + temp_inum], &pop[inum], sizeof(t_lgp_indi) );
 	}
 
 
     METHOD void rewrite_by_temp (INTVAL inum, INTVAL temp_inum) {
-		opcode_t *ipc_src, *ipc_dest;
-		ipc_src = pop[pop_size + temp_inum].code;
-		ipc_dest = pop[inum].code;
-		// PIO_eprintf(INTERP, "Will copy %i bytes, from %p to %p\n", (INDI_MAX_LEN*sizeof(opcode_t)), ipc_src, ipc_start );
-		memcpy(ipc_dest, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
+		memcpy( &pop[inum], &pop[pop_size + temp_inum], sizeof(t_lgp_indi) );
 	}
 
 

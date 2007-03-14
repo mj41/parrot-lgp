@@ -21,7 +21,8 @@
     eq $I10, 2, PS_PARAM_OK
 
 	print "setting default params\n"
-	pop_size = max_pop_size
+#	pop_size = max_pop_size
+	pop_size = 10
 	print "pop_size="
 	print pop_size
 	print "\n"
@@ -37,7 +38,11 @@ PS_PARAM_OK:
 OK_POP_SIZE:
 PARAMS_DONE:
 
+    .local int best_inum, best_fitness, best_len
     .const .Sub eval_body = 'eval_body'
+	best_inum = 0
+	best_fitness = 9999999
+	best_len = 9999999
 
 #    print "initial eval_body() and init_indi():\n"
     eval_body()
@@ -47,6 +52,7 @@ PARAMS_DONE:
 	print "initialization\n"
 	bsr F_INIT
     print "initialization [ok]\n"
+    bsr PRINT_BEST
 
 	print "run\n"
 	bsr F_RUN
@@ -61,6 +67,17 @@ F_INIT_NEXT:
 	engine."load_indi"(inum)
 
     I0 = eval_body()
+
+    if I0 > best_fitness goto F_INIT_NB
+    I1 = engine."indi_len"(inum)
+    if I0 < best_fitness goto F_INIT_B
+    if I1 >= best_len goto F_INIT_NB
+F_INIT_B:
+    best_inum = inum
+    best_fitness = I0
+    best_len = I1
+F_INIT_NB:
+
 #    print inum
 #    print ":"
 #    print I0
@@ -105,6 +122,17 @@ F_NEXT_RUN:
 #    print "\n"
 	engine."rewrite_by_temp"(temp,0)
     engine."set_indi_fitness"(temp,nfi2)
+
+    if nfi2 > best_fitness goto F_RUN_NB1
+    I1 = engine."indi_len"(temp)
+    if nfi2 < best_fitness goto F_RUN_B1
+    if I1 >= best_len goto F_RUN_NB1
+F_RUN_B1:
+    best_inum = inum
+    best_fitness = nfi2
+    best_len = I1
+    bsr PRINT_BEST
+F_RUN_NB1:
 F_SKIP_LT1:
 
 	temp = parents[3]
@@ -123,14 +151,39 @@ F_SKIP_LT1:
 #    print "\n"
 	engine."rewrite_by_temp"(temp,1)
     engine."set_indi_fitness"(temp,nfi3)
+
+    if nfi3 > best_fitness goto F_RUN_NB2
+    I1 = engine."indi_len"(temp)
+    if nfi3 < best_fitness goto F_RUN_B2
+    if I1 >= best_len goto F_RUN_NB2
+F_RUN_B2:
+    best_inum = inum
+    best_fitness = nfi3
+    best_len = I1
+    bsr PRINT_BEST
+F_RUN_NB2:
 F_SKIP_LT2:
 	
 #	print "running "
 #	print inum
 #	print " [ok]\n\n"
     inc inum
-    if inum < 900000 goto F_NEXT_RUN
+    if inum < 9900000 goto F_NEXT_RUN
+#    if inum < 900 goto F_NEXT_RUN
     print "\n"
+ret
+
+
+PRINT_BEST:
+    print "best indi: inum="
+    print best_inum
+    print ", fitness="
+    print best_fitness
+    print ", len="
+    print best_len
+    print ", code:\n"
+	engine."indi_code"(best_inum)
+	print "\n"
 ret
 
     
@@ -204,6 +257,7 @@ ERR:
     abs I0
     I0 = I0 * I0
     I31 = I31 + I0
+    abs I31
 #    print "new I31 = "
 #    print I31
 #    print "\n"

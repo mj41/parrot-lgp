@@ -98,11 +98,16 @@ pir_output_is(<< 'CODE', << 'OUTPUT', "eval eval_body individual");
 .HLL_map .Sub, .LGP
 
 .sub eval_body
+    # init_indi hack begin
     returncc
     bsr INDI_CORE
+    # init_indi hack end
+
     I0 = 10
     I1 = 20
     I3 = 5
+    bsr INDI_CORE
+    returncc
 
 INDI_CORE:
     print "indi core begin\n"
@@ -119,7 +124,7 @@ INDI_CORE:
     noop
     noop
     print "indi core end\n"
-    returncc
+    ret
 
     noop
     noop
@@ -152,7 +157,7 @@ INDI_CORE:
     noop
     noop
     noop
-    returncc
+    ret
 .end
 CODE
 loading lib

@@ -33,6 +33,7 @@
     print "\n\n"
 
     $P1."new_indi"()
+    print "new_indi() done\n\n"
 
     $P1."idump"()
     print "\n\n"
@@ -112,7 +113,7 @@ INDI_CORE:
     I3 += I0
     I3 += I1
     I3 += I2
-    ret
+    ret 
     
     noop
     noop
@@ -126,7 +127,7 @@ INDI_CORE:
     noop
     noop
 
-    print "error: second INDI_CORE return\n"
+    print "test string\n"
     ret
 
 .end

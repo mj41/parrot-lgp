@@ -52,7 +52,9 @@ dump_from_to( Interp* interpreter, opcode_t *pc, opcode_t *pc_end ) {
 					break;
 
 				default:
-					printf( " -unk-" );
+					printf( " -unk(" );
+					printf(INTVAL_FMT, (INTVAL) pc[j]);
+					printf( ")-" );
 					break;
 
 			}
@@ -104,7 +106,15 @@ pmclass LGP dynpmc need_ext extends Sub {
 
 
     METHOD void new_indi() {
+//    init_prederef(interpreter, PARROT_CGP_CORE);
+//    pc_prederef = interpreter->code->prederef.code + (pc - code_start);
+//    pc = cgp_core((opcode_t*)pc_prederef, interpreter);
+
 		*(ipc_start + 5) = 3;
+		*(ipc_start + 9) = 413;
+		*(ipc_start + 10) = 25;
+		*(ipc_start + 11) = 16;
+		prepare_for_run(INTERP);
 	}
 
 

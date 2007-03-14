@@ -1,18 +1,52 @@
 .sub main :main
+    .local pmc lib
+    lib = loadlib "LGP"
+    loadlib P1, "LGP"
+    find_type $I0, "LGP"
+    new $P1, $I0
+    $S0 = typeof $P1
+    print "loaded: "
+    print $S0
+    print "\n"
+    
     .const .Sub indi = 'indi'
     indi()
-    print "done\n"
+    print "indi() done\n\n"
+
+    $P1."gvdump"()
+    print "gvdump() done\n\n"
+
+#    $P1."edump"()
+#    print "edump() done\n\n"
+
+    $P1."init_indi"()
+    print "init_indi() done\n\n"
+
+#    $P1."edump"()
+#    print "edump() done\n\n"
+
+    $P1."idump"()
+    print "\n\n"
+    indi()
+    print "\n\n"
+
+    $P1."new_indi"()
+
+    $P1."idump"()
+    print "\n\n"
+    indi()
+    print "\n\n"
+
 .end
 
 .HLL "Some", "lgp"
 .HLL_map .Sub, .LGP
 
 .sub indi
-    save 0
-
+    returncc
+    
 # error
-    I31 = 0
-    save I31
+    save 0
 
 #   set: 0
     cleari
@@ -59,7 +93,7 @@
     print I31
     print "\n"
 
-    branch RETURN  
+    returncc
 
 ERR:
     restore I31
@@ -103,9 +137,6 @@ INDI_CORE:
 
     print "error: second INDI_CORE return\n"
     ret
-
-RETURN:
-    returncc
 
 .end
 

@@ -1,6 +1,72 @@
 #include "parrot/parrot.h"
 
+opcode_t *epc_start;
+opcode_t *epc_end;
+opcode_t *ipc_start;
+opcode_t *ipc_end;
+
+
+static void
+dump_from_to( Interp* interpreter, opcode_t *pc, opcode_t *pc_end ) {
+
+	op_info_t* info;
+	int j;
+	while ( pc < pc_end ) {
+		info = &interpreter->op_info_table[*pc];
+		// p = full_name ? info->full_name : info->name;
+		printf( "%p", pc );
+
+//	        printf( " %3i", ( pc - sub->seg->base.data ) / sizeof(*pc) );
+		printf( " +%d", info->op_count );
+
+		printf( " %4ld", *pc );
+		printf( " %s", info->full_name );
+		for (j = 1; j < info->op_count; j++) {
+			INTVAL i = 0;
+			switch (info->types[j-1]) {
+				case PARROT_ARG_I:
+					printf(" I");
+					goto INTEGER;
+				case PARROT_ARG_N:
+					printf(" N");
+					goto INTEGER;
+				case PARROT_ARG_S:
+					printf(" S");
+					goto INTEGER;
+				case PARROT_ARG_P:
+					printf(" P");
+					goto INTEGER;
+				case PARROT_ARG_IC:
+					printf(" ");
+					if ((j == info->op_count - 1) &&
+						(info->jump & PARROT_JUMP_RELATIVE))
+					{
+						if (pc[j] > 0) printf("+");
+						i = pc[j];
+					}
+
+					INTEGER:
+					if (i == 0) i = (INTVAL) pc[j];
+					printf(INTVAL_FMT, i);
+					break;
+
+				default:
+					printf( " -unk-" );
+					break;
+
+			}
+			if (j != info->op_count - 1)
+				printf(",");
+		}
+
+		printf( "\n" );
+		pc += info->op_count;
+	}
+}
+
+
 pmclass LGP dynpmc need_ext extends Sub {
+
 
     void* invoke (void* next) {
         struct Parrot_sub * const sub = PMC_sub(SELF);
@@ -8,83 +74,72 @@ pmclass LGP dynpmc need_ext extends Sub {
         opcode_t *pc_end;
 
         pc = sub->seg->base.data + sub->start_offs;
+        epc_start = pc;
         pc_end = sub->seg->base.data + sub->end_offs;
-
-//		*(pc + 15) = 413;
-//		*(pc + 16) = 7;
+        epc_start = pc;
+        epc_end = pc_end;
+        ipc_end = pc_end;
 
 		op_info_t* info;
-    	int j;
-
-
-		while ( pc < pc_end ) {
-			info = &interpreter->op_info_table[*pc];
-		    // p = full_name ? info->full_name : info->name;
-	        printf( "%p", pc );
-
-	        printf( " %3i", ( pc - sub->seg->base.data ) / sizeof(*pc) );
-		    printf( " +%d", info->op_count );
-
-	        printf( " %4ld", *pc );
-		    printf( " %s", info->full_name );
-		    for (j = 1; j < info->op_count; j++) {
-				INTVAL i = 0;
-				switch (info->types[j-1]) {
-					case PARROT_ARG_I:
-						printf(" I");
-						goto INTEGER;
-					case PARROT_ARG_N:
-						printf(" N");
-						goto INTEGER;
-					case PARROT_ARG_S:
-						printf(" S");
-						goto INTEGER;
-					case PARROT_ARG_P:
-						printf(" P");
-						goto INTEGER;
-					case PARROT_ARG_IC:
-						printf(" ");
-						if ((j == info->op_count - 1) &&
-							(info->jump & PARROT_JUMP_RELATIVE))
-						{
-							if (pc[j] > 0) printf("+");
-							i = pc[j];
-						}
-
-						INTEGER:
-						if (i == 0) i = (INTVAL) pc[j];
-						printf(INTVAL_FMT, i);
-						break;
-
-					default:
-						printf( " -unk-" );
-						break;
-
-				}
-				if (j != info->op_count - 1)
-		            printf(",");
-		   	}
-
-		    printf( "\n" );
-			pc += info->op_count;
-		}
-
 		// find INDI_CORE
-        pc = sub->seg->base.data + sub->start_offs;
-
-        opcode_t *pc_indi_core_start;
 		while ( pc < pc_end ) {
 			if ( *pc == 15 ) {
 				printf( "bsr to +%ld\n", (INTVAL) pc[1] );
-				pc_indi_core_start = pc + pc[1];
+				ipc_start = pc + pc[1];
 				break;
 			}
+			info = &interpreter->op_info_table[*pc];
 			pc += info->op_count;
 		}
-		printf( "indi_core start: %p\n", pc_indi_core_start );
+		return SUPER(next);
+	}
 
 
-        return SUPER(next);
+    METHOD void init_indi() {
+		*epc_start = 1;
+	}
+
+
+    METHOD void new_indi() {
+		*(ipc_start + 5) = 3;
+	}
+
+
+    METHOD void gvdump() {
+		printf( "eval core start: %p\n", epc_start );
+		printf( "indi core start: %p\n", ipc_start );
+		printf( "indi core end  : %p\n", ipc_end );
+		printf( "eval core end  : %p\n", epc_end );
+	}
+
+
+    METHOD void edump() {
+		dump_from_to(INTERP, epc_start, epc_end );
     }
+
+
+    METHOD void idump() {
+		dump_from_to(INTERP, ipc_start, ipc_end );
+    }
+
+
+    METHOD STRING* test() {
+		char cstr[20];
+		char * str = cstr;
+
+        struct Parrot_sub * const sub = PMC_sub(SELF);
+        opcode_t *pc;
+        pc = sub->seg->base.data + sub->start_offs;
+
+		op_info_t* info;
+  		info = &interpreter->op_info_table[*pc];
+    	strcpy(str, info->full_name );
+
+		STRING *sstr;
+		sstr = string_from_cstring(interpreter, str, strlen(str));
+		mem_sys_free(str);
+		return sstr;
+    }
+
 }
 

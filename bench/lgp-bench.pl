@@ -8,10 +8,18 @@ my $cmd;
 $cmd = 'parrot.exe lgp07.pir 1000'; # 10tis
 $cmd = 'parrot.exe lgp07.pir 10000'; # 10tis
 $cmd = 'parrot.exe lgp07.pir 100000'; # 100tis
-$cmd = 'parrot.exe lgp07.pir 1000000'; # 1mil
-#$cmd = 'parrot.exe lgp07.pir 100000000'; # 10mil
-#$cmd = 'parrot.exe lgp07.pir 1000000000'; # 100mil
-#$cmd = 'parrot.exe lgp07.pir 10000000000'; # 1mld
+$cmd = 'parrot.exe -S lgp07.pir 1000000'; # 1mil
+#$cmd = 'parrot.exe lgp07.pir 10000000'; # 10mil
+#$cmd = 'parrot.exe lgp07.pir 100000000'; # 100mil
+#$cmd = 'parrot.exe lgp07.pir 1000000000'; # 1mld
+
+
+# 50 tis / s
+# 3mil / min
+# 180 mil / hod
+# 4,3 mld / den
+
+# with JIT - maybe x10 ?
 
 my $num = 10;
 for (1..$num) { 

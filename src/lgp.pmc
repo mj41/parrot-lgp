@@ -14,14 +14,12 @@ Parrot_dump_from_to (Interp* interp, opcode_t *pc, opcode_t *pc_end) {
 	//PIO_printf(interp, "----- %p\n", pc );
 	//PIO_printf(interp, "----- %p\n", pc_end );
 	op_info_t* info;
-	int j;
+	int j, rop_num, op_num;
+	rop_num = 0;
+	op_num = 0;
 	while ( pc < pc_end ) {
 		info = &interp->op_info_table[*pc];
-		// p = full_name ? info->full_name : info->name;
-		PIO_printf(interp, "%p", pc );
-
-		// PIO_printf(interp, " %3i", ( pc - sub->seg->base.data ) / sizeof(*pc) );
-		PIO_printf(interp, " +%d", info->op_count );
+		PIO_printf(interp, "%3i +%1i %3i %p", rop_num, info->op_count, op_num, pc );
 
 		PIO_printf(interp, " %4ld", *pc );
 		PIO_printf(interp, " %s", info->full_name );
@@ -67,6 +65,8 @@ Parrot_dump_from_to (Interp* interp, opcode_t *pc, opcode_t *pc_end) {
 
 		PIO_printf(interp, "\n" );
 		pc += info->op_count;
+		rop_num++;
+		op_num += info->op_count;
 	}
 }
 
@@ -74,27 +74,43 @@ Parrot_dump_from_to (Interp* interp, opcode_t *pc, opcode_t *pc_end) {
 pmclass LGP dynpmc need_ext extends Sub {
 
     void* invoke (void* next) {
-        struct Parrot_sub * const sub = PMC_sub(SELF);
-        opcode_t *pc;
-        opcode_t *pc_end;
+		if ( init_done ) {
+			#if 0
+				opcode_t *prev;
+				prev = &*( (opcode_t *)next - 1 );
+	  			PIO_printf(INTERP, "lgp invoke prev op %p %i\n", prev, *prev );
+	  			Parrot_dump_from_to(INTERP, prev-30, prev+1 );
+	  			PIO_printf(INTERP, "lgp invoke from %p %i\n", (opcode_t *)next, *(opcode_t *)next );
+	  			Parrot_dump_from_to(INTERP, (opcode_t *) next, &*(((opcode_t *) next) + 100) );
+	  		# endif
 
-		// todo - move to init_indi method
-		if ( ! init_done ) {
+		} else {
+			struct Parrot_sub * const sub = PMC_sub(SELF);
+			opcode_t *pc;
+			opcode_t *pc_end;
+
 			// find INDI_CORE
 			op_info_t* info;
 			epc_start = sub->seg->base.data + sub->start_offs;
 			epc_end = sub->seg->base.data + sub->end_offs;
 
 			pc = epc_start;
-			if ( *pc != 15 ) {
-				PIO_printf(INTERP, "First instruction is not bsr\n");
+			if ( *pc != 34 ) {
+				PIO_eprintf(INTERP, "First instruction is not ret.\n");
 				exit;
 			}
-			PIO_printf(INTERP, "bsr to +%ld\n", (INTVAL) pc[1] );
-			ipc_start = pc + pc[1];
-			info = &INTERP->op_info_table[*pc];
-			pc += info->op_count;
+			if ( *(pc + 1) != 15 ) {
+				PIO_eprintf(INTERP, "Second instruction is not bsr\n");
+				exit;
+			}
+			// PIO_printf(INTERP, "bsr to +%ld\n", (INTVAL) pc[2]+1 );
+			ipc_start = pc + pc[2] + 1;
 			ipc_end = epc_end;
+
+			if ( ipc_end - ipc_start != INDI_MAX_LEN ) {
+				PIO_eprintf(INTERP, "INDI_MAX_LEN != eval_body() len (%i != %i)\n", INDI_MAX_LEN, ipc_end - ipc_start);
+				exit;
+			}
 
 			init_done = 1;
 		}
@@ -104,12 +120,50 @@ pmclass LGP dynpmc need_ext extends Sub {
 
 
     METHOD void init_indi () {
-		// replace "bsr INDI_CORE" with "noop", "noop"
+		// todo - move code from init_indi method here
+		// replace "returncc and bsr INDI_CORE" with "noop", "noop"
 		*(epc_start + 0) = 1;
 		*(epc_start + 1) = 1;
+		*(epc_start + 2) = 1;
 
 		srand((unsigned) time(NULL) );
 	}
+
+
+    METHOD void initialize_todebug (INTVAL indi_num) {
+		opcode_t *ipc;
+
+		if ( INDI_MAX_LEN < 27 ) {
+			PIO_printf(INTERP, "ERR: INDI_MAX_LEN < 26");
+			exit;
+		}
+
+		pop[indi_num].fitness = 0;
+		pop[indi_num].len = INDI_MAX_LEN;
+
+		INTVAL j;
+		ipc = pop[indi_num].code;
+		for ( j=0; j<INDI_MAX_LEN; j++ ) {
+			*(ipc + j) = 1; // noop
+		}
+
+		// print_s S0
+		*(ipc + 5) = 412;
+		*(ipc + 6) = 0;
+
+		// set_i_ic I4, 666
+		*(ipc + 12) =  825;
+		*(ipc + 13) =  4;
+		*(ipc + 14) =  666;
+
+		// print_s S0
+		*(ipc + 20) = 412;
+		*(ipc + 21) = 0;
+
+		// ret
+		*(ipc + 27) = 16;
+		*(ipc + INDI_MAX_LEN - 1) = 16;
+    }
 
 
     METHOD void initialize (INTVAL indi_num) {
@@ -126,6 +180,9 @@ pmclass LGP dynpmc need_ext extends Sub {
 		*ipc = (INTVAL)16; // ret
 		//PIO_printf(INTERP, "r--- %p %i\n", ipc, *ipc );
 		last = g_last - 1;
+
+
+//		memcpy(&lgp_used_regs, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
 
 		INTVAL r_op, r_i, j;
 		op_info_t *info;
@@ -146,7 +203,13 @@ pmclass LGP dynpmc need_ext extends Sub {
 			for (j = 0; j < (info->op_count-1); j++) {
 				switch (info->types[j]) {
 					case PARROT_ARG_I:
-						r_i = rand() % lgp_in_reg_count;
+						r_i = rand() % (lgp_out_reg_count + lgp_in_reg_count);
+						if ( r_i < lgp_out_reg_count ) {
+							r_i = lgp_out_regs[ r_i ];
+						} else {
+							r_i -= lgp_out_reg_count;
+							r_i = lgp_in_regs[ r_i ];
+						}
 						//PIO_printf(INTERP, "r_i %i z %i: %i\n", j+1, (info->op_count-1), r_i );
 						*(ipc+j+1) = r_i;
 						break;
@@ -166,7 +229,7 @@ pmclass LGP dynpmc need_ext extends Sub {
 		// pop[num] individual code dump
 		opcode_t *ipc_s;
 		ipc_s = pop[indi_num].code;
-		Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[indi_num].len ) );
+		Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[indi_num].len) );
     }
 
 
@@ -208,6 +271,11 @@ pmclass LGP dynpmc need_ext extends Sub {
 		// eval body individual part code dump
 		Parrot_dump_from_to(INTERP, ipc_start, ipc_end);
     }
+
+
+    METHOD INTVAL pop_size () {
+		return (INTVAL) POP_SIZE;
+	}
 
 
     METHOD INTVAL ops_num () {

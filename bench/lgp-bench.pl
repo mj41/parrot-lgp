@@ -5,21 +5,19 @@ my ( $t_start, $t_stop, $t_diff );
 my $t_sum;
 
 my $cmd;
-$cmd = 'parrot.exe lgp07.pir 1000'; # 10tis
-$cmd = 'parrot.exe lgp07.pir 10000'; # 10tis
-$cmd = 'parrot.exe lgp07.pir 100000'; # 100tis
-$cmd = 'parrot.exe -S lgp07.pir 1000000'; # 1mil
-#$cmd = 'parrot.exe lgp07.pir 10000000'; # 10mil
-#$cmd = 'parrot.exe lgp07.pir 100000000'; # 100mil
-#$cmd = 'parrot.exe lgp07.pir 1000000000'; # 1mld
+#  -C --CGP-core
+#  -f --fast-core
+#  -g --computed-goto-core
+#  -j --jit-core
+#  -S --switched-core
+  
+#$cmd = 'parrot.exe -C lgp12.pir 100000'; # 10 x 100tis
+#$cmd = 'parrot.exe -f lgp12.pir 100000'; # 10 x 100tis
+#$cmd = 'parrot.exe -g lgp12.pir 100000'; # 10 x 100tis
+#$cmd = 'parrot.exe -j lgp12.pir 100000'; # 10 x 100tis
+$cmd = 'parrot.exe -S lgp12.pir 100000'; # 10 x 100tis
+#$cmd = 'parrot.exe lgp12.pir 100000'; # 10 x 100tis
 
-# 1 vzorek ... vypocteno x4 
-# 200 tis / s
-# 12mil / min
-# 720 mil / hod
-# 17,28 mld / den
-
-# with JIT - maybe x10 ?
 
 my $num = 10;
 for (1..$num) { 

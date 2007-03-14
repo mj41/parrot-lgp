@@ -8,8 +8,8 @@
  *
  */
 
-#define POP_SIZE 1000000
-#define INDI_MAX_LEN 50
+#define POP_SIZE 100000
+#define INDI_MAX_LEN 500
 
 typedef struct lgp_indi {
     double          fitness;
@@ -22,13 +22,20 @@ t_pop pop;
 
 INTVAL lgp_in_reg_count  = 3;
 INTVAL lgp_in_regs[] = {
-	0, 1, 2
+	1, 2, 3
 };
 
 INTVAL lgp_out_reg_count  = 1;
 INTVAL lgp_out_regs[] = {
-	3
+	4
 };
+
+INTVAL lgp_used_reg_max_count = 4;
+typedef struct lgp_used_regs {
+	INTVAL count;
+	INTVAL regs[4];
+} t_lgp_used_regs;
+
 
 INTVAL lgp_op_count  = 29 - 7;
 opcode_t lgp_ops[] = {

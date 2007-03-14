@@ -20,14 +20,41 @@ PARAM_OK:
     print "loaded dynpmc: "
     print $S0
     print "\n"
+
+	.local int pop_size
+	pop_size = engine."pop_size"()
+    if I29 <= pop_size goto OK_POP_SIZE
+    print "Max population size is "
+    print pop_size
+    print "\n"
+    goto END
+
+OK_POP_SIZE:
+
+#	bsr OPS_DUMP
     
     .const .Sub eval_body = 'eval_body'
 
 	# todo - replace this first initialization run with pure init_indi method
+    noop
+    noop
+    noop
+    print "initial eval_body() and init_indi():\n"
     eval_body()
-    print "initial eval_body() done\n\n"
     engine."init_indi"()
-    print "init_indi done\n\n"
+    print "initial eval_body() and init_indi() done\n"
+
+	goto SKIP_FIRST_REAL_EVAL
+
+	noop
+	noop
+	noop
+	print "\n"
+	print "trying to run first real eval_body()\n"
+    I31 = eval_body()
+    print "I31 after eval_body() = "
+    print I31
+    print "\n"
 
     engine."eb_mdump"()
     print "eb_mdump() done\n\n"
@@ -38,34 +65,47 @@ PARAM_OK:
 #    engine."ei_cdump"()
 #    print "ei_cdump done\n\n"
 
-    print "ops_num: "
-    I0 = engine."ops_num"()
-    print I0
-    print "\n\n"
-
-    print "ops: "
-    P0 = engine."ops"()
-    I0 = P0
-    print "ops_num: "
-    print I0
-    print "\n"
-
-	I1 = 0
-PRINT_NEXT_OP:	
-    I2 = P0[I1]
-    print "op "
-    print I1
-    print ": "
-    print I2
-    print "\n"
-    I1 = I1 + 1
-    if I1 < I0 goto PRINT_NEXT_OP
-    print "\n\n"
+SKIP_FIRST_REAL_EVAL:
 
     I30 = 0
-
+#	branch DEBUG
 #    branch NEXT_INDI
     branch F_NEXT_INDI
+
+
+DEBUG:
+	I30 = 10
+	print "initialize_todebug("
+	print I30
+	print ")\n"
+	engine."initialize_todebug"(I30)
+
+	print "engine.load_indi("
+	print I30
+	print ")\n"
+	engine."load_indi"(I30)
+	print "\n"
+
+    print "eb_cdump():\n"
+    engine."eb_cdump"()
+    print "eb_cdump done\n\n"
+
+    print "ei_cdump():\n"
+    engine."ei_cdump"()
+    print "ei_cdump done\n\n"
+
+    print "eb_mdump():\n"
+    engine."eb_mdump"()
+    print "eb_mdump() done\n\n"
+
+	print "--- 'I0 = eval_body()' output begin ---\n"
+	I0 = eval_body()
+	print "--- 'I0 = eval_body()' output end ---\n"
+	print "I0 = "
+	print I0
+	print "\n\n"
+	
+	branch END
     
 
 F_NEXT_INDI:
@@ -129,6 +169,33 @@ NEXT_INDI:
     print "\n"
     if I30 < I29 goto NEXT_INDI
     branch END
+
+
+OPS_DUMP:
+    print "ops_num: "
+    I0 = engine."ops_num"()
+    print I0
+    print "\n\n"
+
+    print "ops: "
+    P0 = engine."ops"()
+    I0 = P0
+    print "ops_num: "
+    print I0
+    print "\n"
+
+	I1 = 0
+PRINT_NEXT_OP:
+    I2 = P0[I1]
+    print "op "
+    print I1
+    print ": "
+    print I2
+    print "\n"
+    I1 = I1 + 1
+    if I1 < I0 goto PRINT_NEXT_OP
+    print "\n\n"
+	ret
     
 END:
 	print "done\n"
@@ -137,61 +204,67 @@ END:
    
 .end
 
+
+
 .HLL "Some", "lgp"
 .HLL_map .Sub, .LGP
 
 .sub eval_body
-	# hack - todo
+	# init_indi hack - todo
+	returncc
 	bsr INDI_CORE
+
+    S1 = "--- debug indi string ---\n"
 	
 # error
     save 0
 
 #   set: 0
-    cleari
     I0 = 3
     I1 = 2
     I2 = 1
+    I3 = 0
     bsr INDI_CORE
     I0 = 11
     bsr ERR
     save I31
 
 #   set: 1
-    cleari
     I0 = 3
     I1 = 3
     I2 = 1
+    I3 = 0
     bsr INDI_CORE
     I0 = 12
     bsr ERR
     save I31
 
 #   set: 2
-    cleari
     I0 = 3
     I1 = 3
     I2 = 3
+    I3 = 0
     bsr INDI_CORE
     I0 = 14
     bsr ERR
     save I31
 
 #   set: 3
-    cleari
     I0 = 9
     I1 = 5
     I2 = 3
+    I3 = 0
     bsr INDI_CORE
     I0 = 22
     bsr ERR
-    save I31
-
     set_returns "(0)", I31
     returncc
 
 ERR:
     restore I31
+#    print "restored I31 = "
+#    print I31
+#    print "\n"
     # error, I3 is indi destination register
     I0 = I3 - I0
 #    print "sub error: "
@@ -200,6 +273,9 @@ ERR:
     abs I0
     I0 = I0 * I0
     I31 = I31 + I0
+#    print "new I31 = "
+#    print I31
+#    print "\n"
     ret
 
 INDI_CORE:
@@ -262,9 +338,6 @@ INDI_CORE:
 	noop
 	noop
 	noop
-	noop
-
-	# 51
     ret
 
 .end

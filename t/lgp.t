@@ -67,21 +67,30 @@ LGP
 OUTPUT
 
 
-pir_output_is(<< 'CODE', << 'OUTPUT', "some test");
+pir_output_is(<< 'CODE', << 'OUTPUT', "eval initialized individual");
 .sub main :main
     .const .Sub indi = 'indi'
+    print "before eval\n"
     indi()
-    print "done\n"
+    print "after eval\n"
 .end
 
 .HLL "Some", "lgp"
 .HLL_map .Sub, .LGP
 
 .sub indi
+    I10 = 10
+    I10 = I10 + 1
+    print I10
+    print "\n"
     noop
-    print "inside indi\n"
+    noop
     returncc
+    noop
+    noop
 .end
 CODE
-LGP
+before eval
+11
+after eval
 OUTPUT

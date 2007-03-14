@@ -9,13 +9,13 @@ opcode_t *ipc_end;
 
 typedef struct lgp_indi {
     double          fitness;
-    opcode_t		code[20];
+    opcode_t		code[100];
     size_t			size;
 } t_lgp_indi;
 
 
-t_lgp_indi pop[1];
-opcode_t *code[1000000][100];
+t_lgp_indi pop[1000000];
+//opcode_t *code[1000000][100];
 
 
 static void

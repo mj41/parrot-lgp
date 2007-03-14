@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use lib 'lib';
+use lib 'parrot/lib';
 use Carp qw(carp croak verbose);
 use Data::Dump qw(dump);
 

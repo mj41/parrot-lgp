@@ -130,7 +130,7 @@ pmclass LGP dynpmc need_ext extends Sub {
 
 			pc = epc_start;
 			if ( *pc != 34 ) {
-				PIO_eprintf(INTERP, "First instruction is not ret.\n");
+				PIO_eprintf(INTERP, "First instruction is not 'returncc'.\n");
 				Parrot_exit(INTERP, 1);
 			}
 			if ( *(pc + 1) != 15 ) {
@@ -559,14 +559,12 @@ pmclass LGP dynpmc need_ext extends Sub {
         pc = ipc_start;
 
 		op_info_t* info;
-  		info = &interpreter->op_info_table[*pc];
+  		info = &INTERP->op_info_table[*pc];
     	strcpy(str, info->full_name );
 
 		STRING *sstr;
-		sstr = string_from_cstring(interpreter, str, strlen(str));
+		sstr = string_from_cstring(INTERP, str, strlen(str));
 		mem_sys_free(str);
 		return sstr;
     }
-
 }
-

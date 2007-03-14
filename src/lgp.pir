@@ -23,7 +23,7 @@
 
 	print "setting default params\n"
 #	pop_size = max_pop_size
-	pop_size = 5
+	pop_size = 50000
 	print "pop_size="
 	print pop_size
 	print "\n"

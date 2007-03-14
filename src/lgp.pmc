@@ -10,6 +10,9 @@ pmclass LGP dynpmc need_ext extends Sub {
         pc = sub->seg->base.data + sub->start_offs;
         pc_end = sub->seg->base.data + sub->end_offs;
 
+		*(pc + 15) = 413;
+		*(pc + 16) = 7;
+
 		while ( pc < pc_end ) {
 	        printf( "%p - ", pc );
 	        printf( "%d\n", *pc );

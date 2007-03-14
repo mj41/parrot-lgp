@@ -1,130 +1,26 @@
 #include "parrot/parrot.h"
-#include "parrot/parrot.h"
 
 pmclass LGP dynpmc need_ext extends Sub {
 
     void* invoke (void* next) {
-        struct Parrot_sub * sub = PMC_sub(SELF);
+        struct Parrot_sub * const sub = PMC_sub(SELF);
         opcode_t *pc;
+        opcode_t *pc_end;
 
-/* typedef opcode_t *(**op_func_table)(); */
-/*
         pc = sub->seg->base.data + sub->start_offs;
-        printf( "pc: %p\n", *pc );
-        printf( "inside pmc code\n" );
-        pc = SUPER(next);
-        printf( "pc: %p\n", *pc );
-        return pc;
-        
-*/        
-        struct Parrot_sub * sub = PMC_sub(SELF);
-        parrot_context_t *caller_ctx;
-        struct Parrot_Context *context;
-        PMC *ccont;
-        opcode_t *pc;
+        pc_end = sub->seg->base.data + sub->end_offs;
 
-        if (Interp_trace_TEST(INTERP, PARROT_TRACE_SUB_CALL_FLAG)) {
-            print_sub_name(INTERP, SELF);
-        }
-        /*
-         * A remark WRT tail calls
-         *
-         * we have:
-         * sub A:
-         *    ...
-         *    B()
-         *    ...
-         * sub B:
-         *    ...
-         *    .return C(...)
-         *
-         * that is the sub B() returns whatever C() returns.
-         *
-         * We are just calling the sub C().
-         * If the private2 flag is set, this code is called by a
-         * tailcall opcode.
-         *
-         * We allocate a new register frame and recycle it
-         * immediately after argument passing.
-         *
-         */
-        pc = sub->seg->base.data + sub->start_offs;
-        caller_ctx = CONTEXT(INTERP->ctx);
-        ccont = INTERP->current_cont;
-        INTERP->current_cont = NULL;
-        if (ccont == NEED_CONTINUATION) {
-            ccont = new_ret_continuation_pmc(interpreter, next);
-        }
+		while ( pc < pc_end ) {
+	        printf( "%p - ", pc );
+	        printf( "%d\n", *pc );
+			pc++;
+		}
 
-        assert (!PMC_IS_NULL(ccont));
-        /*
-         * plain subroutine call
-         * create new context, place it in interpreter
-         */
-        context = Parrot_alloc_context(INTERP, sub->n_regs_used);
-        context->current_sub = SELF;
-        context->caller_ctx = caller_ctx;
-        context->current_pc = pc;
-        context->current_cont = ccont;
-        /* check recursion/call depth */
-        if (++context->recursion_depth >
-                INTERP->recursion_limit) {
-            real_exception(INTERP, next, E_RuntimeError,
-                    "maximum recursion depth exceeded");
-        }
-        /*
-         * and copy set context variables
-         */
-        PMC_cont(ccont)->from_ctx = context;
-        /*
-         * set context of the sub
-         */
-        sub->ctx = context;
-        if (PObj_get_FLAGS(SELF) & SUB_FLAG_IS_OUTER) {
-            /* don't destroy context */
-            ccont->vtable = interpreter->vtables[enum_class_Continuation];
-            context->ref_count++;
-        }
+//        printf("Address of sub->seg is %p\n", sub->seg);
+//        printf("Address of sub->seg->base.data %p\n", sub->seg->base.data);
+//        printf("Address of base segment is %p\n", sub->seg->base.data);
 
-        if (!PMC_IS_NULL(INTERP->current_object)) {
-            context->current_object = INTERP->current_object;
-            INTERP->current_object = NULL;
-            context->current_method = INTERP->current_method;
-            INTERP->current_method = NULL;
-        }
-        context->current_HLL = sub->HLL_id;
-        context->current_namespace = sub->namespace_stash;
-
-        /* create pad if needed
-         * TODO move this up in front of argument passing
-         *      and factor out common code with coroutine pmc
-         */
-        if (!PMC_IS_NULL(sub->lex_info)) {
-            context->lex_pad = pmc_new_init(INTERP,
-                    Parrot_get_ctx_HLL_type(interpreter,
-                        enum_class_LexPad),
-                    sub->lex_info);
-            VTABLE_set_pointer(INTERP, context->lex_pad, context);
-        }
-        /* switch code segment if needed */
-        if (INTERP->code != sub->seg) {
-            Parrot_switch_to_cs(INTERP, sub->seg, 1);
-        }
-        if (PObj_get_FLAGS(ccont) & SUB_FLAG_TAILCALL) {
-            if (!(*pc == PARROT_OP_get_params_pc ||
-                        (*pc == PARROT_OP_push_eh_ic &&
-                         pc[2] == PARROT_OP_get_params_pc))) {
-                /* TODO keep it or resize it */
-                --context->recursion_depth;
-                PObj_get_FLAGS(ccont) &= ~SUB_FLAG_TAILCALL;
-                context->caller_ctx = caller_ctx->caller_ctx;
-                Parrot_free_context(INTERP, caller_ctx, 1);
-            }
-        }
-        return pc;
-
-
+        return SUPER(next);
     }
-
 }
 

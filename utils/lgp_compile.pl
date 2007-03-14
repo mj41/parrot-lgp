@@ -43,15 +43,16 @@ chdir('./src/dynpmc') || die;
 run_cmd( 'mingw32-make' ) || die "make failed\n";
 chdir('../..') || die;
 
-my $script = @ARGV[0];
+my $script = $ARGV[0];
 if ( $script ) {
-    if ( $ARGV[0] eq '-t' ) {
+    if ( $script eq '-t' ) {
+        $script = $ARGV[1];
         print "parrot trace on\n";
-        run_cmd( 'parrot -t ' . $script, 1 );
+        run_cmd( 'parrot.exe -t ' . $script, 1 );
 
     } else {
         my $num = ( $ARGV[1] ) ? $ARGV[1] : 5;
-        run_cmd( 'parrot  ' . $script . ' ' . $num, 1 );
+        run_cmd( 'parrot.exe ' . $script . ' ' . $num, 1 );
     }
 }
 

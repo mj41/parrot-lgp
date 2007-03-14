@@ -5,7 +5,6 @@
 
     .local pmc lib
     lib = loadlib "LGP"
-    loadlib P1, "LGP"
     find_type $I0, "LGP"
 
     .local pmc engine

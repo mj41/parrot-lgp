@@ -1,5 +1,5 @@
 .sub _main :main
-   inid()
+   indi()
 .end
 
 .sub indi

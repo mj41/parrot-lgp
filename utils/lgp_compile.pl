@@ -36,5 +36,5 @@ if ( $ARGV[0] eq '-t' ) {
     
 } else {
     my $num = ( $ARGV[0] ) ? $ARGV[0] : 5;
-    run_cmd( "parrot lgp12.pir $num", 0 );
+    run_cmd( "parrot lgp13.pir $num", 1 );
 }

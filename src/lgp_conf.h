@@ -10,6 +10,7 @@
 
 #define POP_SIZE 100000
 #define INDI_MAX_LEN 5
+#define FIGHT_NUM 2
 
 typedef struct lgp_indi {
     double          fitness;
@@ -17,7 +18,7 @@ typedef struct lgp_indi {
     size_t			len;
 } t_lgp_indi;
 
-typedef t_lgp_indi t_pop[POP_SIZE];
+typedef t_lgp_indi t_pop[POP_SIZE+FIGHT_NUM];
 t_pop pop;
 
 INTVAL lgp_in_reg_count  = 3;

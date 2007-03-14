@@ -134,7 +134,7 @@ pmclass LGP dynpmc need_ext extends Sub {
 	}
 
 
-    METHOD void initialize_todebug (INTVAL indi_num) {
+    METHOD void initialize_todebug (INTVAL inum) {
 		opcode_t *ipc;
 
 		if ( INDI_MAX_LEN < 27 ) {
@@ -142,11 +142,11 @@ pmclass LGP dynpmc need_ext extends Sub {
 			exit;
 		}
 
-		pop[indi_num].fitness = 0;
-		pop[indi_num].len = INDI_MAX_LEN;
+		pop[inum].fitness = 0;
+		pop[inum].len = INDI_MAX_LEN;
 
 		INTVAL j;
-		ipc = pop[indi_num].code;
+		ipc = pop[inum].code;
 		for ( j=0; j<INDI_MAX_LEN; j++ ) {
 			*(ipc + j) = 1; // noop
 		}
@@ -170,14 +170,14 @@ pmclass LGP dynpmc need_ext extends Sub {
     }
 
 
-    METHOD void initialize (INTVAL indi_num) {
+    METHOD void initialize (INTVAL inum) {
 		opcode_t *ipc_s, *ipc;
-		ipc_s = pop[indi_num].code;
+		ipc_s = pop[inum].code;
 
 		INTVAL g_last, last;
 		g_last = rand() % ( INDI_MAX_LEN - 1 ) + 1;
-		pop[indi_num].fitness = 0;
-		pop[indi_num].len = g_last + 1;
+		pop[inum].fitness = 0;
+		pop[inum].len = g_last + 1;
 
 		//PIO_printf(INTERP, "b--- %p %i (+%i)\n", ipc, *ipc, g_last );
 		ipc = ipc_s + g_last;
@@ -200,7 +200,7 @@ pmclass LGP dynpmc need_ext extends Sub {
 			//PIO_printf(INTERP, "%s \n", info->full_name );
 			ipc = &*(ipc - info->op_count);
 			*ipc = r_op;
-			//Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[indi_num].len) );
+			//Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[inum].len) );
 			//PIO_printf(INTERP, "\n");
 
 			for (j = 0; j < (info->op_count-1); j++) {
@@ -223,31 +223,129 @@ pmclass LGP dynpmc need_ext extends Sub {
 				}
 			}
 			last = last - info->op_count;
-			//Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[indi_num].len ) );
+			//Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[inum].len ) );
 		}
     }
 
 
-    METHOD void indi_code (INTVAL indi_num) {
+    METHOD void indi_code (INTVAL inum) {
 		// pop[num] individual code dump
 		opcode_t *ipc_s;
-		ipc_s = pop[indi_num].code;
-		Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[indi_num].len) );
+		ipc_s = pop[inum].code;
+		Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[inum].len) );
     }
 
 
-    METHOD INTVAL indi_len (INTVAL indi_num) {
+    METHOD INTVAL indi_len (INTVAL inum) {
 		// pop[num] individual len
-		return pop[indi_num].len;
+		return pop[inum].len;
     }
 
 
-    METHOD void load_indi (INTVAL indi_num) {
+    METHOD INTVAL indi_fitness (INTVAL inum) {
+		// pop[num] individual fitness
+		return pop[inum].fitness;
+    }
+
+
+    METHOD void load_indi (INTVAL inum) {
 		opcode_t *ipc_src;
-		ipc_src = pop[indi_num].code;
-		// PIO_eprintf(INTERP, "Can't %i\n", (INDI_MAX_LEN*sizeof(opcode_t)) );
-		// todo sizeof
+		ipc_src = pop[inum].code;
+		// PIO_eprintf(INTERP, "Will copy %i bytes, from %p to %p\n", (INDI_MAX_LEN*sizeof(opcode_t)), ipc_src, ipc_start );
 		memcpy(ipc_start, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
+	}
+
+
+	METHOD int quicksort_fitness_partition(INTVAL a[], int p, int r) {
+	  	int x = a[r];
+	  	int j = p - 1;
+	  	int i;
+	  	for (i = p; i < r; i++) {
+			if ( pop[ x ].fitness <= pop[ a[i] ].fitness ) {
+		  		j = j + 1;
+		  		int temp = a[j];
+		  		a[j] = a[i];
+		  		a[i] = temp;
+			}
+	  	}
+	  	a[r] = a[j + 1];
+	  	a[j + 1] = x;
+
+	  	return (j + 1);
+	}
+
+
+	METHOD void quicksort_fitness(INTVAL a[], int p, int r) {
+	  	if (p < r) {
+			int q;
+			q = Parrot_LGP_quicksort_fitness_partition(INTERP, pmc, a, p, r);
+			Parrot_LGP_quicksort_fitness(INTERP, pmc, a, p, q - 1);
+			Parrot_LGP_quicksort_fitness(INTERP, pmc, a, q + 1, r);
+	  	}
+	}
+
+
+	METHOD void get_parents () {
+		INTVAL r_inums[4];
+
+		r_inums[0] = rand() % POP_SIZE;
+
+		do {
+			r_inums[1] = rand() % POP_SIZE;
+		} while ( r_inums[1] == r_inums[0] );
+
+		do {
+			r_inums[2] = rand() % POP_SIZE;
+		} while ( r_inums[2] == r_inums[0] || r_inums[2] == r_inums[1] );
+
+		do {
+			r_inums[3] = rand() % POP_SIZE;
+		} while ( r_inums[3] == r_inums[0] || r_inums[3] == r_inums[1] || r_inums[3] == r_inums[2] );
+
+		PIO_eprintf(INTERP, "unsorted nums: %i (%i), %i (%i), %i (%i), %i (%i)\n", r_inums[0], pop[r_inums[0]].fitness, r_inums[1], pop[r_inums[1]].fitness, r_inums[2], pop[r_inums[2]].fitness, r_inums[3], pop[r_inums[3]].fitness  );
+		Parrot_LGP_quicksort_fitness(INTERP, pmc, r_inums, 0, 4-1);
+		PIO_eprintf(INTERP, "unsorted nums: %i (%i), %i (%i), %i (%i), %i (%i)\n", r_inums[0], pop[r_inums[0]].fitness, r_inums[1], pop[r_inums[1]].fitness, r_inums[2], pop[r_inums[2]].fitness, r_inums[3], pop[r_inums[3]].fitness  );
+
+		PMC *array;
+		array = pmc_new(INTERP, enum_class_FixedPMCArray);
+		VTABLE_set_integer_native(INTERP, array, 4 );
+        VTABLE_set_integer_keyed_int(INTERP, array, 0, r_inums[0] );
+        VTABLE_set_integer_keyed_int(INTERP, array, 1, r_inums[1] );
+        VTABLE_set_integer_keyed_int(INTERP, array, 2, r_inums[2] );
+        VTABLE_set_integer_keyed_int(INTERP, array, 3, r_inums[3] );
+		return array;
+	}
+
+
+    METHOD void copy_to_temp (INTVAL inum, INTVAL temp_inum) {
+		opcode_t *ipc_src, *ipc_dest;
+		ipc_src = pop[inum].code;
+		ipc_dest = pop[POP_SIZE + temp_inum].code;
+		// PIO_eprintf(INTERP, "Will copy %i bytes, from %p to %p\n", (INDI_MAX_LEN*sizeof(opcode_t)), ipc_src, ipc_start );
+		memcpy(ipc_dest, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
+	}
+
+
+    METHOD void mutate_temp (INTVAL temp_inum) {
+		opcode_t *ipc_ti;
+		ipc_ti = pop[POP_SIZE + temp_inum].code;
+	}
+
+
+    METHOD void load_temp_indi (INTVAL temp_inum) {
+		opcode_t *ipc_src;
+		ipc_src = pop[POP_SIZE + temp_inum].code;
+		// PIO_eprintf(INTERP, "Will copy %i bytes, from %p to %p\n", (INDI_MAX_LEN*sizeof(opcode_t)), ipc_src, ipc_start );
+		memcpy(ipc_start, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
+	}
+
+
+    METHOD void rewrite_by_temp (INTVAL inum, INTVAL temp_inum) {
+		opcode_t *ipc_src, *ipc_dest;
+		ipc_src = pop[POP_SIZE + temp_inum].code;
+		ipc_dest = pop[inum].code;
+		// PIO_eprintf(INTERP, "Will copy %i bytes, from %p to %p\n", (INDI_MAX_LEN*sizeof(opcode_t)), ipc_src, ipc_start );
+		memcpy(ipc_dest, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
 	}
 
 
@@ -288,8 +386,8 @@ pmclass LGP dynpmc need_ext extends Sub {
 
 	METHOD PMC* ops () {
 		PMC *array;
-		array = pmc_new(interpreter, enum_class_FixedPMCArray);
-		VTABLE_set_integer_native(interpreter, array, lgp_op_count );
+		array = pmc_new(INTERP, enum_class_FixedPMCArray);
+		VTABLE_set_integer_native(INTERP, array, lgp_op_count );
 		int i;
 		for ( i = 0; i < lgp_op_count; i++) {
             VTABLE_set_integer_keyed_int(INTERP, array, i, (INTVAL)lgp_ops[i] );

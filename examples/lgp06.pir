@@ -22,19 +22,23 @@
     $P1."init_indi"()
     print "init_indi() done\n\n"
 
-#    $P1."edump"()
-#    print "edump() done\n\n"
+    $P1."edump"()
+    print "edump() done\n\n"
 
     $P1."idump"()
     print "\n\n"
-    indi()
+    I31 = indi()
+    print "error: "
+    print I31
     print "\n\n"
 
     $P1."new_indi"()
 
     $P1."idump"()
     print "\n\n"
-    indi()
+    I31 = indi()
+    print "error: "
+    print I31
     print "\n\n"
 
 .end
@@ -88,33 +92,20 @@
     bsr ERR
     save I31
 
-# print error
-    print "error: "
-    print I31
-    print "\n"
-
+    set_returns "(0)", I31
     returncc
 
 ERR:
     restore I31
     # error, I3 is indi destination register
     I0 = I3 - I0
-    print "sub error: "
-    print I0
-    print "\n"
+#    print "sub error: "
+#    print I0
+#    print "\n"
     abs I0
     I0 = I0 * I0
     I31 = I31 + I0
     ret
-
-    noop
-    noop
-    noop
-    noop
-    noop
-    print "error: second ERR return\n"
-    ret
-
 
 INDI_CORE:
 #    print "-> indi_core\n"

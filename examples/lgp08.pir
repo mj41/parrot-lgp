@@ -1,59 +1,42 @@
 .sub main :main
+    get_params "(0)", P5
+    set I29, P5
+    ne I29, 2, PARAM_ERROR
+    set I29, P5[1]
+
     .local pmc lib
     lib = loadlib "LGP"
     loadlib P1, "LGP"
     find_type $I0, "LGP"
     new $P1, $I0
     $S0 = typeof $P1
-    print "loaded: "
-    print $S0
-    print "\n"
     
     .const .Sub indi = 'indi'
     indi()
-    print "indi() done\n\n"
-
-    $P1."gvdump"()
-    print "gvdump() done\n\n"
-
-#    $P1."edump"()
-#    print "edump() done\n\n"
-
     $P1."init_indi"()
-    print "init_indi() done\n\n"
 
-    $P1."edump"()
-    print "edump() done\n\n"
-
-    $P1."idump"()
-    print "\n\n"
-    I31 = indi()
-    print "error: "
-    print I31
-    print "\n\n"
-
+    set I30, I29
+    
+NEXT_IDNI:
     $P1."new_indi"()
-    print "new_indi() done\n\n"
-
-    $P1."idump"()
-    print "\n\n"
     I31 = indi()
-    print "error: "
-    print I31
-    print "\n\n"
+    print "aaa\n"
 
-	$P0 = getstdin
-
-REDO:
-    unless $P0, REDO
-    readline S30, $P0
-    print S30
-    eq S30, "\n", END
-    eq S30, "\r\n", END
-    branch REDO
+AGAIN:
+    dec I30
+    print "bench_num: "
+#    print I30
+#    print "\n"
+    gt I30, 0, NEXT_IDNI
+    branch END
+    
+    
+PARAM_ERROR:
+    print "param error\n"    
 
 END:
-
+    print "done\n"
+    
 .end
 
 .HLL "Some", "lgp"
@@ -125,21 +108,57 @@ INDI_CORE:
     I3 += I0
     I3 += I1
     I3 += I2
-    ret 
-    
-    noop
-    noop
-    noop
-    noop
-    noop
+    I3 += I0
+    I3 += I1
+    I3 += I2
+    I3 += I0
+    I3 += I1
+    I3 += I2
+    I3 += I0
 
-    noop
-    noop
-    noop
-    noop
-    noop
+    I3 -= I1
+    I3 -= I2
+    I3 -= I0
+    I3 -= I1
+    I3 -= I2
+    I3 -= I0
+    I3 -= I1
+    I3 -= I2
+    I3 -= I0
+    I3 -= I1
 
-    print "test string\n"
+    I3 += I2
+    I3 += I0
+    I3 += I1
+    I3 += I2
+    I3 += I0
+    I3 += I1
+    I3 += I2
+    I3 += I0
+    I3 += I1
+    I3 += I2
+
+    I3 *= I2
+    I3 *= I0
+    I3 *= I1
+    I3 *= I2
+    I3 *= I0
+    I3 *= I1
+    I3 *= I2
+    I3 *= I0
+    I3 *= I1
+    I3 *= I2
+
+    I3 /= I2
+    I3 /= I0
+    I3 /= I1
+    I3 /= I2
+    I3 /= I0
+    I3 /= I1
+    I3 /= I2
+    I3 /= I0
+    I3 /= I1
+    I3 /= I2
     ret
 
 .end

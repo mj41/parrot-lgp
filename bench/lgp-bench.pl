@@ -13,11 +13,11 @@ $cmd = 'parrot.exe -S lgp07.pir 1000000'; # 1mil
 #$cmd = 'parrot.exe lgp07.pir 100000000'; # 100mil
 #$cmd = 'parrot.exe lgp07.pir 1000000000'; # 1mld
 
-
-# 50 tis / s
-# 3mil / min
-# 180 mil / hod
-# 4,3 mld / den
+# 1 vzorek ... vypocteno x4 
+# 200 tis / s
+# 12mil / min
+# 720 mil / hod
+# 17,28 mld / den
 
 # with JIT - maybe x10 ?
 

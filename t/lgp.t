@@ -1,10 +1,9 @@
 #! perl
-# Copyright (C) 2005, The Perl Foundation.
-# $Id: lgp.t 12838 2006-06-16 14:19:10Z mj41 $
 
 use strict;
 use warnings;
 use lib qw( . lib ../lib ../../lib );
+use lib qw( ./parrot/lib );
 use Test::More;
 use Parrot::Test tests => 3;
 use Parrot::Config;
@@ -12,11 +11,11 @@ use Parrot::Config;
 
 =head1 NAME
 
-t/dynpmc/lgp.t
+t/lgp.t
 
 =head1 SYNOPSIS
 
-    % prove t/dynpmc/lgp.t
+    % prove t/lgp.t
 
 =head1 DESCRIPTION
 

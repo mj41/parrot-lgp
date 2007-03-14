@@ -8,8 +8,8 @@
  *
  */
 
-#define MAX_POP_SIZE 100000
-#define INDI_MAX_LEN 500
+#define MAX_POP_SIZE 50000
+#define INDI_MAX_LEN 50
 #define FIGHT_NUM 2
 
 // typedef INTVAL fitness_t;

@@ -97,19 +97,23 @@ pmclass LGP dynpmc need_ext extends Sub {
 			pc = epc_start;
 			if ( *pc != 34 ) {
 				PIO_eprintf(INTERP, "First instruction is not ret.\n");
-				exit;
+				Parrot_exit(INTERP, 1);
 			}
 			if ( *(pc + 1) != 15 ) {
 				PIO_eprintf(INTERP, "Second instruction is not bsr\n");
-				exit;
+				Parrot_exit(INTERP, 1);
 			}
 			// PIO_printf(INTERP, "bsr to +%ld\n", (INTVAL) pc[2]+1 );
 			ipc_start = pc + pc[2] + 1;
 			ipc_end = epc_end;
 
 			if ( ipc_end - ipc_start != INDI_MAX_LEN ) {
-				PIO_eprintf(INTERP, "INDI_MAX_LEN != eval_body() len (%i != %i)\n", INDI_MAX_LEN, ipc_end - ipc_start);
-				exit;
+				if ( ipc_end - ipc_start > INDI_MAX_LEN ) {
+					PIO_eprintf(INTERP, "INDI_MAX_LEN > eval_body() len (%i > %i)\n", INDI_MAX_LEN, ipc_end - ipc_start);
+				} else {
+					PIO_eprintf(INTERP, "INDI_MAX_LEN != eval_body() len (%i != %i)\n", INDI_MAX_LEN, ipc_end - ipc_start);
+					Parrot_exit(INTERP, 1);
+				}
 			}
 
 			init_done = 1;
@@ -171,16 +175,15 @@ pmclass LGP dynpmc need_ext extends Sub {
 		ipc_s = pop[indi_num].code;
 
 		INTVAL g_last, last;
-		g_last = rand() % (INDI_MAX_LEN-1) + 1;
+		g_last = rand() % ( INDI_MAX_LEN - 1 ) + 1;
 		pop[indi_num].fitness = 0;
 		pop[indi_num].len = g_last + 1;
 
 		//PIO_printf(INTERP, "b--- %p %i (+%i)\n", ipc, *ipc, g_last );
-		ipc = &*(ipc_s + g_last);
-		*ipc = (INTVAL)16; // ret
+		ipc = ipc_s + g_last;
+		*ipc = 16; // ret
 		//PIO_printf(INTERP, "r--- %p %i\n", ipc, *ipc );
 		last = g_last - 1;
-
 
 //		memcpy(&lgp_used_regs, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
 

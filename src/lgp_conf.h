@@ -9,7 +9,7 @@
  */
 
 #define POP_SIZE 100000
-#define INDI_MAX_LEN 500
+#define INDI_MAX_LEN 5
 
 typedef struct lgp_indi {
     double          fitness;

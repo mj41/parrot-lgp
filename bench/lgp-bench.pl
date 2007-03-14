@@ -15,11 +15,11 @@ my $cmd;
 #$cmd = 'parrot.exe -f lgp12.pir 100000'; # 10 x 100tis
 #$cmd = 'parrot.exe -g lgp12.pir 100000'; # 10 x 100tis
 #$cmd = 'parrot.exe -j lgp12.pir 100000'; # 10 x 100tis
-$cmd = 'parrot.exe -S lgp12.pir 100000'; # 10 x 100tis
-#$cmd = 'parrot.exe lgp12.pir 100000'; # 10 x 100tis
+#$cmd = 'parrot.exe -S lgp12.pir 100000'; # 10 x 100tis
+$cmd = 'parrot.exe lgp12.pir 100000'; # 10 x 100tis
 
 
-my $num = 10;
+my $num = 100;
 for (1..$num) { 
     print "run number: $_\n";
     $t_start = time(); 

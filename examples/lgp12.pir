@@ -67,9 +67,9 @@ OK_POP_SIZE:
 
 SKIP_FIRST_REAL_EVAL:
 
-	goto BENCH
+#	goto BENCH
 #	goto FAST
-#	goto SLOW
+	goto SLOW
 	goto END
 
 BENCH:
@@ -85,7 +85,7 @@ BENCH_NEXT:
     bsr SSF_RUN
     print "\n"
     inc I28
-    if I28 <= 10 goto BENCH_NEXT
+    if I28 <= 100 goto BENCH_NEXT
     branch END
  
 FAST:
@@ -182,11 +182,11 @@ D_INIT_NEXT:
 	engine."load_indi"(I30)
 	print "\n"
 
-    engine."eb_cdump"()
-    print "eb_cdump done\n\n"
+#    engine."eb_cdump"()
+#    print "eb_cdump done\n\n"
 
-    engine."ei_cdump"()
-    print "ei_cdump done\n\n"
+#    engine."ei_cdump"()
+#    print "ei_cdump done\n\n"
 
     print "fitness = "
     I0 = eval_body()
@@ -942,7 +942,7 @@ INDI_CORE:
 	noop
 	noop
 	noop
-
+ 
     ret
 
 .end

@@ -12,6 +12,7 @@ sub run_cmd {
     my ( $cmd, $print_ok_outut ) = @_;
     
     my ($st, $out) = sys( $cmd, $wd . '/lgp-' . $cmd . '.out' );
+    print "'${cmd}' return code = ${st}\n";
     if ( $st ) {
         print "'$cmd' return: $st\n";
         print $out;
@@ -19,7 +20,10 @@ sub run_cmd {
         return 0;
     }
     print "$cmd [OK]\n";
-    print $out if $print_ok_outut;
+    if ( $print_ok_outut ) {
+        print "\n";   
+        print $out;
+    }
     return 1;
 }
 
@@ -38,3 +42,4 @@ if ( $ARGV[0] eq '-t' ) {
     my $num = ( $ARGV[0] ) ? $ARGV[0] : 5;
     run_cmd( "parrot lgp13.pir $num", 1 );
 }
+

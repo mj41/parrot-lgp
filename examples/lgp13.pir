@@ -36,7 +36,7 @@ OK_POP_SIZE:
 
 #    print "initial eval_body() and init_indi():\n"
     eval_body()
-    engine."init_indi"()
+    engine."prepare_lgp"(pop_size)
 
     .local int inum
 	bsr F_INIT
@@ -52,63 +52,73 @@ F_INIT_NEXT:
 	engine."load_indi"(inum)
 
     I0 = eval_body()
-    print inum
-    print " --- "
-    print I0
-    print " :::: "
+#    print inum
+#    print ":"
+#    print I0
+#    print "  "
     engine."set_indi_fitness"(inum,I0)
+#    I0 = engine."indi_fitness"(inum)
+#    print I0
+#    print "\n"
+
     inc inum
     if inum < pop_size goto F_INIT_NEXT
-    print "done\n"
+    print "initialization [ok]\n"
 ret
 
 
 F_RUN:
 	inum = 0
-	.local int pi1, pi2, pi3, pi4
-	.local int nfi1, nfi2, ofi3, ofi4
+	.local int ofi0, ofi1, nfi2, nfi3
 	.local int temp
 	.local pmc parents
+
 F_NEXT_RUN:
 	print "running "
     print inum
     print "\n"
 	
 	parents = engine."get_parents"()
-	temp = parents[0]
 
-#	engine."copy_to_temp"(temp,0)
-	engine."copy_to_temp0"(temp,0)
+	temp = parents[2]
+	engine."copy_to_temp"(temp,0)
 	engine."mutate_temp"(0)
 	engine."load_temp_indi"(0)
-	nfi1 = eval_body()
-
-	temp = parents[2]
-	temp = engine."indi_fitness"(temp)
-	print "fitness "
-	print temp
-	print "\n"
-	
-	temp = parents[2]
-	ofi3 = engine."indi_fitness"(temp)
-	if nfi1 < ofi3 goto F_SKIP_LT1
-#	engine."rewrite_by_temp"(temp,0)
-	engine."rewrite_by_temp0"(temp)
-    engine."set_indi_fitness"(temp,nfi1)
-
+	nfi2 = eval_body()
+	temp = parents[0]
+	ofi0 = engine."indi_fitness"(temp)
+	# less is better
+	if nfi2 > ofi0 goto F_SKIP_LT1
+    print "indi="
+    print temp
+    print ", new_fitness="
+    print nfi2
+    print "\n"
+	engine."rewrite_by_temp"(temp,0)
+    engine."set_indi_fitness"(temp,nfi2)
 F_SKIP_LT1:
 
-	temp = parents[1]
-	engine."copy_to_temp1"(temp)
+	temp = parents[3]
+	engine."copy_to_temp"(temp,1)
 	engine."mutate_temp"(1)
 	engine."load_temp_indi"(1)
-	nfi2 = eval_body()
-	temp = parents[3]
-	ofi4 = engine."indi_fitness"(temp)
-	if nfi2 < ofi4 goto F_SKIP_LT2
-	engine."rewrite_by_temp1"(temp)
+	nfi3 = eval_body()
+	temp = parents[1]
+	ofi1 = engine."indi_fitness"(temp)
+	# less is better
+	if nfi3 > ofi1 goto F_SKIP_LT2
+    print "indi="
+    print temp
+    print ", new_fitness="
+    print nfi3
+    print "\n"
+	engine."rewrite_by_temp"(temp,1)
+    engine."set_indi_fitness"(temp,nfi3)
 F_SKIP_LT2:
-		
+	
+	print "running "
+	print inum
+	print " [ok]\n\n"
     inc inum
     if inum < 10 goto F_NEXT_RUN
     print "\n"
@@ -128,8 +138,6 @@ END:
 	returncc
 	bsr INDI_CORE
 
-    S1 = "--- debug indi string ---\n"
-	
 # error
     save 0
 

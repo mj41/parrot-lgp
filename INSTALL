@@ -1,0 +1,49 @@
+== Microsoft Windows ==
+You will need:
+* ActivePerl http://activeperl.org/products/activeperl/
+* MinGW http://www.mingw.org/download.shtml#hdr2
+** gcc, mingw32-make, ...
+* TortoiseSVN or Subversion
+** TortoiseSVN http://tortoisesvn.net/downloads
+*** A pretty Win32 GUI. TortoiseSVN integrates nicely with the Windows Explorer.
+*** Contain patch program needed to apply parrot.patch.
+** Subversion http://subversion.tigris.org/project_packages.html
+*** command-line client (svn, svnversion, ...)
+
+See
+* http://wiki.kn.vutbr.cz/mj/index.cgi?Build%20Parrot%20with%20MinGW
+* http://wiki.kn.vutbr.cz/mj/index.cgi?Build%20Parrot%20with%20MinGW%20and%20ActivePerl
+
+
+== Linux ==
+* Perl
+* Subversion client
+* gcc, make, ...
+
+
+=== First time ===
+ > mkdir lgp-devel
+ > cd lgp-devel
+ lgp-devel> mkdir parrot-lgp
+ lgp-devel> svn co https://perl6.cz/svn/parrot-lgp/trunk/ parrot-lgp
+ lgp-devel> mkdir parrot
+ lgp-devel> svn co https://svn.perl.org/parrot/trunk/ parrot -r 1
+
+=== Update ===
+ lgp-devel> svn up parrot-lgp
+ lgp-devel> svn up parrot -r 17479
+ lgp-devel> cp ./parrot-lgp/src/lgp.pmc ./parrot/src/dynpmc/
+ lgp-devel> cp ./parrot-lgp/src/lgp_conf.h ./parrot/src/dynpmc/
+
+* apply ./parrot-lgp/src/parrot.patch on ./parrot
+** you can use TortoiseSVN on Windows
+
+* compile parrot (use mingw32-make on windows)
+ parrot> cd parrot
+ parrot> perl Configure.pl
+ parrot> make 
+
+* run
+  lgp-devel> perl parrot-lgp/t/lgp.t
+  lgp-devel> parrot/parrot parrot-lgp/src/lgp.pir
+

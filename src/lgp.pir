@@ -14,20 +14,20 @@
     print $S0
     print "\n"
 
-	.local int max_pop_size
-	max_pop_size = engine."max_pop_size"()
+    .local int max_pop_size
+    max_pop_size = engine."max_pop_size"()
 
     .local int pop_size
     $I10 = $P10
     eq $I10, 2, PS_PARAM_OK
 
-	print "setting default params\n"
-#	pop_size = max_pop_size
-	pop_size = 50000
-	print "pop_size="
-	print pop_size
-	print "\n"
-	goto PARAMS_DONE
+    print "setting default params\n"
+#   pop_size = max_pop_size
+    pop_size = 50000
+    print "pop_size="
+    print pop_size
+    print "\n"
+    goto PARAMS_DONE
 
 PS_PARAM_OK:    
     pop_size = $P10[1]
@@ -41,33 +41,33 @@ PARAMS_DONE:
 
     .local int best_inum, best_fitness, best_len
     .const .Sub eval_body = 'eval_body'
-	best_inum = 0
-	best_fitness = 9999999
-	best_len = 9999999
+    best_inum = 0
+    best_fitness = 9999999
+    best_len = 9999999
 
 #    print "initial eval_body() and init_indi():\n"
     eval_body()
     engine."prepare_lgp"(pop_size)
 
     .local int inum
-	print "initialization\n"
-	bsr F_INIT
+    print "initialization\n"
+    bsr F_INIT
     print "initialization [ok]\n"
     print "after initialization "
     bsr PRINT_BEST
     print "\n"
 
-	print "running ...\n\n"
-	bsr F_RUN
-	print "run [ok]\n"
-	goto END
+    print "running ...\n\n"
+    bsr F_RUN
+    print "run [ok]\n"
+    goto END
 
 
 F_INIT:
-	inum = 0
+    inum = 0
 F_INIT_NEXT:
-	engine."initialize"(inum)
-	engine."load_indi"(inum)
+    engine."initialize"(inum)
+    engine."load_indi"(inum)
 
     I0 = eval_body()
 
@@ -96,62 +96,62 @@ ret
 
 
 F_RUN:
-	inum = 0
-	.local int ofi0, ofi1, nfi2, nfi3
-	.local int temp
-	.local pmc parents
-	.local int max_inum
-	max_inum = pop_size * 50
+    inum = 0
+    .local int ofi0, ofi1, nfi2, nfi3
+    .local int temp
+    .local pmc parents
+    .local int max_inum
+    max_inum = pop_size * 50
 
 F_NEXT_RUN:
-#	print "running "
+#   print "running "
 #    print inum
 #    print "\n"
-	
-	# 0 is worst, 3 is best (less fitness)
-	parents = engine."get_parents"()
+    
+    # 0 is worst, 3 is best (less fitness)
+    parents = engine."get_parents"()
 # debug print parents nums
-#	temp = parents[0] 
-#	print temp
-#	print " "
-#	temp = parents[1] 
-#	print temp
-#	print " "
-#	temp = parents[2] 
-#	print temp
-#	print " "
-#	temp = parents[3] 
-#	print temp
-#	print "\n"
+#   temp = parents[0] 
+#   print temp
+#   print " "
+#   temp = parents[1] 
+#   print temp
+#   print " "
+#   temp = parents[2] 
+#   print temp
+#   print " "
+#   temp = parents[3] 
+#   print temp
+#   print "\n"
 
-	temp = parents[2]
-	engine."copy_to_temp"(temp,0)
-
-#    print "temp_indi_code(0):\n"
-#    engine."temp_indi_code"(0)
-#    print "\n"
-	
-	engine."mutate_temp_naive"(0)
+    temp = parents[2]
+    engine."copy_to_temp"(temp,0)
 
 #    print "temp_indi_code(0):\n"
 #    engine."temp_indi_code"(0)
 #    print "\n"
-#	ret # debug
+    
+    engine."mutate_temp_naive"(0)
 
-#	print "load_temp_indi(0)\n"
-	engine."load_temp_indi"(0)
-#	print "eval_body\n"
-	nfi2 = eval_body()
-	temp = parents[0]
-	ofi0 = engine."indi_fitness"(temp)
-	# less is better
-	if nfi2 >= ofi0 goto F_SKIP_LT1
+#    print "temp_indi_code(0):\n"
+#    engine."temp_indi_code"(0)
+#    print "\n"
+#   ret # debug
+
+#   print "load_temp_indi(0)\n"
+    engine."load_temp_indi"(0)
+#   print "eval_body\n"
+    nfi2 = eval_body()
+    temp = parents[0]
+    ofi0 = engine."indi_fitness"(temp)
+    # less is better
+    if nfi2 >= ofi0 goto F_SKIP_LT1
 #    print "indi="
 #    print temp
 #    print ", new_fitness="
 #    print nfi2
 #    print "\n"
-	engine."rewrite_by_temp"(temp,0)
+    engine."rewrite_by_temp"(temp,0)
     engine."set_indi_fitness"(temp,nfi2)
 
     if nfi2 > best_fitness goto F_RUN_NB1
@@ -166,21 +166,21 @@ F_RUN_B1:
 F_RUN_NB1:
 F_SKIP_LT1:
 
-	temp = parents[3]
-	engine."copy_to_temp"(temp,1)
-	engine."mutate_temp_naive"(1)
-	engine."load_temp_indi"(1)
-	nfi3 = eval_body()
-	temp = parents[1]
-	ofi1 = engine."indi_fitness"(temp)
-	# less is better
-	if nfi3 >= ofi1 goto F_SKIP_LT2
+    temp = parents[3]
+    engine."copy_to_temp"(temp,1)
+    engine."mutate_temp_naive"(1)
+    engine."load_temp_indi"(1)
+    nfi3 = eval_body()
+    temp = parents[1]
+    ofi1 = engine."indi_fitness"(temp)
+    # less is better
+    if nfi3 >= ofi1 goto F_SKIP_LT2
 #    print "indi="
 #    print temp
 #    print ", new_fitness="
 #    print nfi3
 #    print "\n"
-	engine."rewrite_by_temp"(temp,1)
+    engine."rewrite_by_temp"(temp,1)
     engine."set_indi_fitness"(temp,nfi3)
 
     if nfi3 > best_fitness goto F_RUN_NB2
@@ -195,10 +195,10 @@ F_RUN_B2:
     bsr PRINT_BEST
 F_RUN_NB2:
 F_SKIP_LT2:
-	
-#	print "running "
-#	print inum
-#	print " [ok]\n\n"
+    
+#   print "running "
+#   print inum
+#   print " [ok]\n\n"
 
     inc inum
 
@@ -229,13 +229,13 @@ PRINT_BEST:
     print ", len="
     print best_len
     print ", code:\n"
-	engine."indi_code"(best_inum)
-	print "\n"
+    engine."indi_code"(best_inum)
+    print "\n"
 ret
 
     
 END:
-	print "done\n"
+    print "done\n"
 .end
 
 
@@ -243,11 +243,16 @@ END:
 .HLL_map .Sub, .LGP
 
 .sub eval_body
-	# init_indi hack - todo
-	returncc
-	bsr INDI_CORE
+    # init_indi hack - todo
+    returncc
+    bsr INDI_CORE
 
 # i1 + i2 + i3 + 5
+# 3 2 1 - 11
+# 3 3 1 - 12
+# 3 3 3 - 14
+# 9 5 3 - 22
+
 # error
     save 0
 
@@ -313,604 +318,604 @@ ERR:
 
 INDI_CORE:
 
-	# 10
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 10
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 20
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 20
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 30
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 30
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 40
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 40
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 50
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 50
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 10
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 10
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 20
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 20
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 30
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 30
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 40
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 40
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 50
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 50
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 10
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 10
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 20
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 20
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 30
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 30
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 40
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 40
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 50
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 50
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 10
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 10
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 20
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 20
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 30
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 30
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 40
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 40
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 50
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 50
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 10
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 10
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 20
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 20
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 30
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 30
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 40
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 40
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 50
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 50
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 10
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 10
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 20
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 20
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 30
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 30
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 40
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 40
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 50
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 50
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 10
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 10
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 20
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 20
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 30
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 30
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 40
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 40
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 50
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 50
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 10
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 10
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 20
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 20
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 30
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 30
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 40
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 40
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 50
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 50
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 10
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 10
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 20
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 20
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 30
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 30
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 40
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 40
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 50
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 50
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 10
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 10
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 20
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 20
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 30
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 30
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 40
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 40
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
 
-	# 50
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
-	noop
+    # 50
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
+    noop
  
     ret
 

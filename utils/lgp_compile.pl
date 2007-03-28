@@ -2,11 +2,49 @@ use Time::HiRes qw(time);
 use strict;
 use Cwd;
 
-use lib 'C:\\usr\\PaP6-testing\\lib\\';
-use Watchdog qw(sys);
-
 my $cwd = cwd();
-my $wd = 'C:/usr/PaP6-testing/parrot-devcpp';
+my $wd = $cwd . '/parrot';
+
+sub sys {
+    my ( $cmd, $temp_out_fn ) = @_;
+
+    my $output;
+    $temp_out_fn = '.out' unless $temp_out_fn;
+    
+    open my $oldout, ">&STDOUT"     or die "Can't dup STDOUT: $!";
+    open OLDERR,     ">&", \*STDERR or die "Can't dup STDERR: $!";
+
+    open STDOUT, '>', $temp_out_fn or die "Can't redirect STDOUT to '$temp_out_fn': $! $@";
+    open STDERR, ">&STDOUT"     or die "Can't dup STDOUT: $!";
+
+    select STDERR; $| = 1;      # make unbuffered
+    select STDOUT; $| = 1;      # make unbuffered
+    
+    select $oldout; $| = 1;
+    select OLDERR; $| = 1;
+    
+    my $status = system($cmd);
+
+    close STDOUT;
+    close STDERR;
+
+    open STDOUT, ">&", $oldout or die "Can't dup \$oldout: $!";
+    open STDERR, ">&OLDERR"    or die "Can't dup OLDERR: $!";
+
+    unless ( open( FH_STDOUT, "<$temp_out_fn") ) {
+        carp("File $temp_out_fn not open!");
+        unlink $temp_out_fn;
+        next;
+    }
+    {
+        local $/ = undef;
+        $output = <FH_STDOUT>;
+    }
+    close FH_STDOUT;
+    print "'$cmd' '$status'\n";
+    return ( $status, $output );
+}
+
 
 sub run_cmd {
     my ( $cmd, $print_ok_outut ) = @_;
@@ -36,9 +74,7 @@ sub run_cmd {
     return 1;
 }
 
-if ( $cwd ne $wd ) {
-    chdir $wd || die;
-}
+chdir $wd || die;
 chdir('./src/dynpmc') || die;
 run_cmd( 'mingw32-make' ) || die "make failed\n";
 chdir('../..') || die;

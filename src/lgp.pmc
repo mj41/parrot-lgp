@@ -315,16 +315,22 @@ pmclass LGP dynpmc need_ext extends Sub {
     }
 
     METHOD void temp_indi_code (INTVAL temp_inum) {
-		// pop[num] individual code dump
+		// pop[pop_size + temp_inum] individual code dump
 		opcode_t *ipc_s;
 		ipc_s = pop[pop_size + temp_inum].code;
 		Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[pop_size + temp_inum].len) );
 	}
 
+
     METHOD INTVAL indi_len (INTVAL inum) {
 		// pop[num] individual len
 		return pop[inum].len;
     }
+
+    METHOD INTVAL temp_indi_len (INTVAL temp_inum) {
+		// pop[pop_size + temp_inum] individual len
+		return pop[pop_size + temp_inum].len;
+	}
 
 
     METHOD INTVAL indi_fitness (INTVAL inum) {
@@ -399,26 +405,25 @@ pmclass LGP dynpmc need_ext extends Sub {
 
     METHOD void mutate_temp_naive (INTVAL temp_inum) {
 		#define DEBUG 0
-		// [operation code] [operands]*
-		opcode_t *ipc_s;
-		size_t rand_position;
-		int rand_i;
 
 		if ( pop[pop_size + temp_inum].len <= 1 ) {
 			return;
 		}
 
-		// random
+		// random position inside indi body
+		size_t rand_position;
 		rand_position = rand() % (pop[pop_size + temp_inum].len - 1); // last instruction is 'ret'
 		// rand_position = 0; // debug
 		// rand_position = pop[pop_size + temp_inum].len - 2; // debug
 
+		// [operation code] [operands]*
+		opcode_t *ipc_s;
 		ipc_s = pop[pop_size + temp_inum].code;
 		// Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[pop_size + temp_inum].len) );
 
 		opcode_t *pc, *pc_end, *last_pc;
 		op_info_t* info;
-		int i, j, last_op_count;
+		int i, j, last_op_count, rand_i;
 
 		pc = ipc_s;
 		pc_end = &*(ipc_s + rand_position);
@@ -497,12 +502,13 @@ pmclass LGP dynpmc need_ext extends Sub {
 			pop[pop_size + temp_inum].len -= info->op_count;
 			*/
 
-			pc_end = &*(ipc_s + pop[pop_size + temp_inum].len) - info->op_count;
+			i = info->op_count;
+			pc_end = &*(ipc_s + pop[pop_size + temp_inum].len) - i;
 			while ( pc < pc_end ) {
-				*pc = *(pc + info->op_count);
+				*pc = *(pc + i);
 				pc++;
 			}
-			pop[pop_size + temp_inum].len -= info->op_count;
+			pop[pop_size + temp_inum].len -= i;
 
 		// mutate instruction num
 		// 20%

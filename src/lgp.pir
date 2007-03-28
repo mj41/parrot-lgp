@@ -40,6 +40,7 @@ OK_POP_SIZE:
 PARAMS_DONE:
 
     .local int best_inum, best_fitness, best_len
+    .local int i, fit, len
     .const .Sub eval_body = 'eval_body'
     best_inum = 0
     best_fitness = 9999999
@@ -69,25 +70,25 @@ F_INIT_NEXT:
     engine."initialize"(inum)
     engine."load_indi"(inum)
 
-    I0 = eval_body()
-    engine."set_indi_fitness"(inum,I0)
-    
-    if I0 > best_fitness goto F_INIT_NB
-    I1 = engine."indi_len"(inum)
-    if I0 < best_fitness goto F_INIT_B
-    if I1 >= best_len goto F_INIT_NB
+    fit = eval_body()
+    engine."set_indi_fitness"(inum,fit)
+
+    if fit > best_fitness goto F_INIT_NB
+    len = engine."indi_len"(inum)
+    if fit < best_fitness goto F_INIT_B
+    if fit >= best_len goto F_INIT_NB
 F_INIT_B:
     best_inum = inum
-    best_fitness = I0
-    best_len = I1
+    best_fitness = fit
+    best_len = len
 F_INIT_NB:
 
 #    print inum
 #    print ":"
-#    print I0
+#    print fit
 #    print "  "
-#    I0 = engine."indi_fitness"(inum)
-#    print I0
+#    $I0 = engine."indi_fitness"(inum)
+#    print fit
 #    print "\n"
 
     inc inum
@@ -98,32 +99,52 @@ ret
 
 F_RUN:
     inum = 0
-    .local int ofi0, ofi1, nfi2, nfi3
-    .local int i
+    .local int ofit0, ofit1, nfit2, nfit3
+    .local int olen0, olen1, nlen2, nlen3
     .local pmc parents
     .local int max_inum
-    max_inum = pop_size * 60
+    max_inum = pop_size * 10
+    print "max fights:"
+    print max_inum
+    print "\n"
 
 F_NEXT_RUN:
-#   print "running "
+#    print "running "
 #    print inum
 #    print "\n"
     
     # 0 is worst, 3 is best (less fitness)
     parents = engine."get_parents"()
 # debug print parents nums
-#   i = parents[0] 
-#   print i
-#   print " "
-#   i = parents[1] 
-#   print i
-#   print " "
-#   i = parents[2] 
-#   print i
-#   print " "
-#   i = parents[3] 
-#   print i
-#   print "\n"
+#    print "parent numbers: inum="
+#    i = parents[0] 
+#    print i
+#    print " (fit:"
+#    fit = engine."indi_fitness"(i)
+#    print fit
+#    print "), inum="
+#
+#    i = parents[1] 
+#    print i
+#    print " (fit:"
+#    fit = engine."indi_fitness"(i)
+#    print fit
+#    print "), inum="
+#
+#    i = parents[2] 
+#    print i
+#    print " (fit:"
+#    fit = engine."indi_fitness"(i)
+#    print fit
+#    print "), inum="
+#
+#    i = parents[3] 
+#    print i
+#    print " (fit:"
+#    fit = engine."indi_fitness"(i)
+#    print fit
+#    print ")\n"
+
 
     i = parents[2]
     engine."copy_to_temp"(i,0)
@@ -133,73 +154,107 @@ F_NEXT_RUN:
 #    print "\n"
     
     engine."mutate_temp_naive"(0)
+    nlen2 = engine."temp_indi_len"(0)
 
-#    print "temp_indi_code(0):\n"
+#    print "temp_indi_code(0) after mutation:\n"
 #    engine."temp_indi_code"(0)
 #    print "\n"
-#   ret # debug
-
-#   print "load_temp_indi(0)\n"
+    
+#    print "load_temp_indi(0)\n"
     engine."load_temp_indi"(0)
-#   print "eval_body\n"
-    nfi2 = eval_body()
+
+#    print "eval_body\n"
+    nfit2 = eval_body()
+
     i = parents[0]
-    ofi0 = engine."indi_fitness"(i)
-    # less is better
-    if nfi2 > ofi0 goto F_SKIP_LT1
-#    print "indi="
+    ofit0 = engine."indi_fitness"(i)
+    olen0 = engine."indi_len"(i)
+
+    if nfit2 > ofit0 goto F_SKIP_LT1
+    if nfit2 < ofit0 goto F_RUN_RW1
+    if nlen2 > olen0 goto F_SKIP_LT1
+
+F_RUN_RW1:
+#    print "inum="
 #    print i
-#    print ", new_fitness="
-#    print nfi2
+#    print ", new fitness="
+#    print nfit2
+#    print ", new len="
+#    print nlen2
 #    print "\n"
     engine."rewrite_by_temp"(i,0)
-    engine."set_indi_fitness"(i,nfi2)
+    engine."set_indi_fitness"(i,nfit2)
 
-    if nfi2 > best_fitness goto F_RUN_NB1
-    I1 = engine."indi_len"(i)
-    if nfi2 < best_fitness goto F_RUN_B1
-    if I1 >= best_len goto F_RUN_NB1
+    if nfit2 > best_fitness goto F_SKIP_LT1
+    if nfit2 < best_fitness goto F_RUN_B1
+    if nlen2 > best_len goto F_SKIP_LT1
 F_RUN_B1:
+#    print "rewriting best inum="
+#    print i
+#    print ", fitness="
+#    print nfit2
+#    print ", len="
+#    print nlen2
+#    print "\n"
+
     best_inum = i
-    best_fitness = nfi2
-    best_len = I1
+    best_fitness = nfit2
+    best_len = nlen2
+    print "new "
     bsr PRINT_BEST
-F_RUN_NB1:
 F_SKIP_LT1:
 
     i = parents[3]
     engine."copy_to_temp"(i,1)
+
     engine."mutate_temp_naive"(1)
+    nlen3 = engine."temp_indi_len"(1)
     engine."load_temp_indi"(1)
-    nfi3 = eval_body()
+    nfit3 = eval_body()
+
     i = parents[1]
-    ofi1 = engine."indi_fitness"(i)
+    ofit1 = engine."indi_fitness"(i)
+
     # less is better
-    if nfi3 > ofi1 goto F_SKIP_LT2
-#    print "indi="
+    if nfit3 > ofit1 goto F_SKIP_LT2
+
+    if nfit3 > ofit1 goto F_SKIP_LT2
+    if nfit3 < ofit1 goto F_RUN_RW2
+    if nlen3 > olen1 goto F_SKIP_LT2
+
+F_RUN_RW2:
+#    print "inum="
 #    print i
-#    print ", new_fitness="
-#    print nfi3
+#    print ", new fitness="
+#    print nfit3
+#    print ", new len="
+#    print nlen3
 #    print "\n"
     engine."rewrite_by_temp"(i,1)
-    engine."set_indi_fitness"(i,nfi3)
+    engine."set_indi_fitness"(i,nfit3)
 
-    if nfi3 > best_fitness goto F_RUN_NB2
-    I1 = engine."indi_len"(i)
-    if nfi3 < best_fitness goto F_RUN_B2
-    if I1 >= best_len goto F_RUN_NB2
+    if nfit3 > best_fitness goto F_SKIP_LT2
+    if nfit3 < best_fitness goto F_RUN_B2
+    if nlen3 >= best_len goto F_SKIP_LT2
 F_RUN_B2:
+#    print "rewriting best inum="
+#    print i
+#    print ", fitness="
+#    print nfit3
+#    print ", len="
+#    print nlen3
+#    print "\n"
+
     best_inum = i
-    best_fitness = nfi3
-    best_len = I1
+    best_fitness = nfit3
+    best_len = nlen3
     print "new "
     bsr PRINT_BEST
-F_RUN_NB2:
 F_SKIP_LT2:
     
-#   print "running "
-#   print inum
-#   print " [ok]\n\n"
+#    print "running "
+#    print inum
+#    print " [ok]\n\n"
 
     inc inum
 
@@ -217,11 +272,12 @@ F_SKIP_LT2:
     print max_inum
     print " )\n"
 #    # print population
-#    i = pop_size * 20
+#    i = pop_size * 1
 #    i = inum % i
 #    if i != 0 goto SKIP_PRINT_INUM
+#    bsr PRINT_BEST # debug
 #    bsr PRINT_POPULATION # debug
-SKIP_PRINT_INUM:
+SKIP_PRINT_INUM:    
     if inum < max_inum goto F_NEXT_RUN
     print "\n"
 ret
@@ -232,8 +288,18 @@ PRINT_BEST:
     print best_inum
     print ", fitness="
     print best_fitness
+
+#    print ", real fitness="
+#    $I0 = engine."indi_fitness"(best_inum)
+#    print $I0
+
     print ", len="
     print best_len
+
+#    print ", real len="
+#    $I0 = engine."indi_len"(best_inum)
+#    print $I0
+
     print ", code:\n"
     engine."indi_code"(best_inum)
     print "\n"
@@ -248,11 +314,11 @@ NEXT_IN_PRINT_POPULATION:
     print "indi: inum="
     print i
     print ", fitness="
-    I0 = engine."indi_fitness"(i)
-    print I0
+    $I0 = engine."indi_fitness"(i)
+    print $I0
     print ", len="
-    I0 = engine."indi_len"(i)
-    print I0
+    $I0 = engine."indi_len"(i)
+    print $I0
     print ", code:\n"
     engine."indi_code"(i)
     print "\n"
@@ -261,7 +327,7 @@ NEXT_IN_PRINT_POPULATION:
 ret
     
 END:
-    bsr PRINT_POPULATION # debug
+#    bsr PRINT_POPULATION # debug
     print "this run "
     bsr PRINT_BEST
     print "done\n"

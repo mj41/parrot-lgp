@@ -190,8 +190,13 @@ pmclass LGP dynpmc need_ext extends Sub {
 			}
 		}
 
-		if ( pop_size > MAX_POP_SIZE ) {
-			PIO_eprintf(INTERP, "pop_size <= MAX_POP_SIZE (%i <= %i) failed\n", pop_size, MAX_POP_SIZE);
+		if ( t_pop_size > MAX_POP_SIZE ) {
+			PIO_eprintf(INTERP, "pop_size <= MAX_POP_SIZE (%i <= %i) failed\n", t_pop_size, MAX_POP_SIZE);
+			Parrot_exit(INTERP, 1);
+		}
+
+		if ( t_pop_size < FIGHT_NUM*2 ) {
+			PIO_eprintf(INTERP, "pop_size >= FIGHT_NUM*2 (%i >= %i) failed\n", t_pop_size, FIGHT_NUM*2);
 			Parrot_exit(INTERP, 1);
 		}
 		pop_size = t_pop_size;
@@ -391,11 +396,17 @@ pmclass LGP dynpmc need_ext extends Sub {
 		ipc_ti = pop[pop_size + temp_inum].code;
 	}
 
+
     METHOD void mutate_temp_naive (INTVAL temp_inum) {
-	#define DEBUG 0
+		#define DEBUG 0
 		// [operation code] [operands]*
 		opcode_t *ipc_s;
 		size_t rand_position;
+		int rand_i;
+
+		if ( pop[pop_size + temp_inum].len <= 1 ) {
+			return;
+		}
 
 		// random
 		rand_position = rand() % (pop[pop_size + temp_inum].len - 1); // last instruction is 'ret'
@@ -411,10 +422,10 @@ pmclass LGP dynpmc need_ext extends Sub {
 
 		pc = ipc_s;
 		pc_end = &*(ipc_s + rand_position);
-	#if DEBUG
-		PIO_printf(INTERP, "----- ----- ----- ----- -----\n" );
-		PIO_printf(INTERP, "rand pos %i (len %i)\n", rand_position, pop[pop_size + temp_inum].len );
-	#endif
+		#if DEBUG
+			PIO_printf(INTERP, "----- ----- ----- ----- -----\n" );
+			PIO_printf(INTERP, "rand pos %i (len %i)\n", rand_position, pop[pop_size + temp_inum].len );
+		#endif
 		info = &INTERP->op_info_table[*pc];
 
 		int r_ins_num, op_num;
@@ -433,14 +444,15 @@ pmclass LGP dynpmc need_ext extends Sub {
 		};
 		//PIO_printf(INTERP, "\n" );
 
-	#if DEBUG
-		Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
-	#endif
-
 		INTVAL r_op_num = 0;
+		rand_i = rand() % 100;
 		// mutate operands
-		if ( rand() % 100 > 20 ) {
+		// 60%
+		if ( rand_i < 60 ) {
 
+			#if DEBUG
+				Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
+			#endif
 			INTVAL r_i;
 			i = 0;
 			if ( (info->op_count) > 1 ) {
@@ -463,8 +475,41 @@ pmclass LGP dynpmc need_ext extends Sub {
 				}
 			}
 
+			#if DEBUG
+				PIO_printf(INTERP, "rand %i, %i\n", r_ins_num, r_op_num );
+				Parrot_dump_from_to(INTERP, pc, pc + info->op_count);
+				PIO_printf(INTERP, "\n" );
+				PIO_printf(INTERP, "----- ----- ----- ----- -----\n" );
+			#endif
+
+		// reduction operator
+		// 60-80 ... 20%
+		} else if ( rand_i < 80 ) {
+			#if DEBUG
+				Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
+			#endif
+
+			/*
+			int len;
+			len = &*(ipc_s + pop[pop_size + temp_inum].len) - (pc + info->op_count);
+			PIO_printf(INTERP, "len to copy: %p, %p, %i \n", pc+info->op_count, pc, len );
+			memcpy(pc, &*(pc+info->op_count), len );
+			pop[pop_size + temp_inum].len -= info->op_count;
+			*/
+
+			pc_end = &*(ipc_s + pop[pop_size + temp_inum].len) - info->op_count;
+			while ( pc < pc_end ) {
+				*pc = *(pc + info->op_count);
+				pc++;
+			}
+			pop[pop_size + temp_inum].len -= info->op_count;
+
 		// mutate instruction num
+		// 20%
 		} else {
+			#if DEBUG
+				Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
+			#endif
 			op_info_t* r_info;
 			INTVAL op_num;
 			// find same length or shorter instruction
@@ -473,23 +518,22 @@ pmclass LGP dynpmc need_ext extends Sub {
 	  			r_info = &INTERP->op_info_table[r_op_num];
 				//PIO_printf(INTERP, "%i (%i), ", r_op, info->op_count-1 );
 			} while ( r_info->op_count > info->op_count );
-		#if DEBUG
-			PIO_printf(INTERP, "ins %i -> %i, op_count %i -> %i\n", *pc, r_op_num, info->op_count, r_info->op_count );
-		#endif
+			#if DEBUG
+				PIO_printf(INTERP, "ins %i -> %i, op_count %i -> %i\n", *pc, r_op_num, info->op_count, r_info->op_count );
+			#endif
 			*pc = r_op_num;
 			for ( i=r_info->op_count; i<info->op_count; i++ ) {
 				//PIO_printf(INTERP, "%i\n", i );
 				*(pc + i) = 1; // noop
 			}
+
+			#if DEBUG
+				PIO_printf(INTERP, "rand %i, %i\n", r_ins_num, r_op_num );
+				Parrot_dump_from_to(INTERP, pc, pc + info->op_count);
+				PIO_printf(INTERP, "\n" );
+				PIO_printf(INTERP, "----- ----- ----- ----- -----\n" );
+			#endif
 		}
-
-	#if DEBUG
-		PIO_printf(INTERP, "rand %i, %i\n", r_ins_num, r_op_num );
-		Parrot_dump_from_to(INTERP, pc, pc + info->op_count);
-		PIO_printf(INTERP, "\n" );
-		PIO_printf(INTERP, "----- ----- ----- ----- -----\n" );
-	#endif
-
 	}
 
     METHOD void load_temp_indi (INTVAL temp_inum) {

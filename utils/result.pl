@@ -1,5 +1,3 @@
-# C:\usr\mj>perl -e "for (1..1000) { system('perl gp08.pl'); print \"\n\"; }" > vysl3.txt
-
 use strict;
 use warnings;
 
@@ -12,7 +10,7 @@ use Statistics::Basic::StdDev;
 my $ifn = $ARGV[0] || 'bench-r44.txt';
 my $debug = 0;
 
-print "iput file path: '$ifn'\n";
+print "input file path: '$ifn'\n";
 print "\n";
 
 my $fh;
@@ -36,6 +34,10 @@ while ( my $line = <$fh> ) {
 }
 
 my ( $fit_m, $fit_len_m, $len_m, $time_m );
+
+print "num of results found: " . scalar( @$ra_fit ) . "\n";
+print "\n";
+
 $fit_m = Statistics::Basic::Median->new( $ra_fit )->query;
 print "fitness median: $fit_m\n";
 $fit_m = Statistics::Basic::Mean->new( $ra_fit )->query;

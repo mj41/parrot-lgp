@@ -103,7 +103,7 @@ F_RUN:
     .local int olen0, olen1, nlen2, nlen3
     .local pmc parents
     .local int max_inum
-    max_inum = pop_size * 10
+    max_inum = pop_size * 50
     print "max fights:"
     print max_inum
     print "\n"
@@ -187,7 +187,7 @@ F_RUN_RW1:
 
     if nfit2 > best_fitness goto F_SKIP_LT1
     if nfit2 < best_fitness goto F_RUN_B1
-    if nlen2 > best_len goto F_SKIP_LT1
+    if nlen2 >= best_len goto F_SKIP_LT1
 F_RUN_B1:
 #    print "rewriting best inum="
 #    print i
@@ -220,7 +220,7 @@ F_SKIP_LT1:
 
     if nfit3 > ofit1 goto F_SKIP_LT2
     if nfit3 < ofit1 goto F_RUN_RW2
-    if nlen3 > olen1 goto F_SKIP_LT2
+    if nlen3 >= olen1 goto F_SKIP_LT2
 
 F_RUN_RW2:
 #    print "inum="

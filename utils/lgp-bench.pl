@@ -18,9 +18,10 @@ my $cmd;
 #$cmd = 'parrot.exe -S lgp12.pir 100000'; # 10 x 100tis
 #$cmd = 'parrot.exe lgp13.pir 100000'; # 10 x 100tis + 900tis
 
-$cmd = 'parrot.exe lgp16.pir 250000';
+$cmd = 'parrot\parrot.exe parrot-lgp\src\lgp.pir 50000';
+print "cmd: '$cmd'\n";
 
-my $num = 100;
+my $num = 50;
 for (1..$num) { 
     print "run number: $_\n";
     $t_start = time(); 

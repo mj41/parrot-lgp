@@ -216,9 +216,10 @@ F_SKIP_LT2:
     print ", max fights "
     print max_inum
     print " )\n"
-    temp = pop_size * 20
-    temp = inum % temp
-    if temp != 0 goto SKIP_PRINT_INUM
+## print population
+#    temp = pop_size * 20
+#    temp = inum % temp
+#    if temp != 0 goto SKIP_PRINT_INUM
 #    bsr PRINT_POPULATION # debug
 SKIP_PRINT_INUM:    
     if inum < max_inum goto F_NEXT_RUN
@@ -260,6 +261,8 @@ NEXT_IN_PRINT_POPULATION:
 ret
     
 END:
+    print "the best indi found in this run:\n"
+    bsr PRINT_BEST
     print "done\n"
 .end
 

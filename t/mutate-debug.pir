@@ -92,6 +92,7 @@ F_INIT_NB:
 
     inc inum
     if inum < pop_size goto F_INIT_NEXT
+    bsr PRINT_POPULATION # debug
 ret
 
 
@@ -150,7 +151,7 @@ F_NEXT_RUN:
     temp = parents[0]
     ofi0 = engine."indi_fitness"(temp)
     # less is better
-    if nfi2 >= ofi0 goto F_SKIP_LT1
+    if nfi2 > ofi0 goto F_SKIP_LT1
     print "indi="
     print temp
     print ", new_fitness="
@@ -179,7 +180,7 @@ F_SKIP_LT1:
     temp = parents[1]
     ofi1 = engine."indi_fitness"(temp)
     # less is better
-    if nfi3 >= ofi1 goto F_SKIP_LT2
+    if nfi3 > ofi1 goto F_SKIP_LT2
     print "indi="
     print temp
     print ", new_fitness="
@@ -220,6 +221,7 @@ F_SKIP_LT2:
     print ", max fights "
     print max_inum
     print " )\n"
+    bsr PRINT_POPULATION # debug
 SKIP_PRINT_INUM:    
     if inum < max_inum goto F_NEXT_RUN
     print "\n"
@@ -238,6 +240,26 @@ PRINT_BEST:
     print "\n"
 ret
 
+PRINT_POPULATION:
+    temp = 0
+    print "\n"
+    print "printing full population:\n"
+    
+NEXT_IN_PRINT_POPULATION:
+    print "indi: inum="
+    print temp
+    print ", fitness="
+    I0 = engine."indi_fitness"(temp)
+    print I0
+    print ", len="
+    I0 = engine."indi_len"(temp)
+    print I0
+    print ", code:\n"
+    engine."indi_code"(temp)
+    print "\n"
+    inc temp
+    if temp < pop_size goto NEXT_IN_PRINT_POPULATION
+ret
     
 END:
     print "done\n"

@@ -87,7 +87,7 @@ pir_output_is(<< 'CODE', << 'OUTPUT', "eval eval_body individual");
     print "running eval_body first time\n"
     eval_body()
     print "preparing lgp\n"
-    engine.prepare_lgp(2)
+    engine.prepare_lgp(10)
     print "evaluating body\n"
     eval_body()
     print "back in main\n"

@@ -31,12 +31,12 @@ See
 
 === Update ===
  lgp-devel> svn up parrot-lgp
- lgp-devel> svn up parrot -r 17479
+ lgp-devel> svn up parrot -r 18060
  lgp-devel> cp ./parrot-lgp/src/lgp.pmc ./parrot/src/dynpmc/
  lgp-devel> cp ./parrot-lgp/src/lgp_conf.h ./parrot/src/dynpmc/
 
 * apply ./parrot-lgp/src/parrot.patch on ./parrot
-** you can use TortoiseSVN on Windows
+** you can use TortoiseSVN on Windows - right mouse button on "parrot", then "apply patch" and right mouse button and "patch all"
 
 * compile parrot (use mingw32-make on windows)
  parrot> cd parrot

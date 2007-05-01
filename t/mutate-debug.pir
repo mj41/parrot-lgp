@@ -145,21 +145,23 @@ F_NEXT_RUN:
     print fit
     print ")\n"
 
-
+    print "--- --- --- --- --- --- --- --- --- ---\n"
     i = parents[2]
-    engine."copy_to_temp"(i,0)
-
-    print "temp_indi_code(0):\n"
-    engine."temp_indi_code"(0)
+    print "temp source inum="
+    print i
     print "\n"
+    
+    engine."copy_to_temp"(i,0)
+    i = 0
+    bsr PRINT_TEMP_I
     
     engine."mutate_temp_naive"(0)
     nlen2 = engine."temp_indi_len"(0)
-
-    print "temp_indi_code(0) after mutation:\n"
-    engine."temp_indi_code"(0)
-    print "\n"
     
+    i = 0
+    bsr PRINT_TEMP_I
+    print "--- --- --- --- --- --- --- --- --- ---\n"
+
     print "load_temp_indi(0)\n"
     engine."load_temp_indi"(0)
 
@@ -182,8 +184,14 @@ F_RUN_RW1:
     print ", new len="
     print nlen2
     print "\n"
+
+    engine."set_temp_indi_fitness"(0,nfit2)
     engine."rewrite_by_temp"(i,0)
-    engine."set_indi_fitness"(i,nfit2)
+
+    print "after rewrite inum="
+    print i
+    print "\n"
+    bsr PRINT_I
 
     if nfit2 > best_fitness goto F_SKIP_LT1
     if nfit2 < best_fitness goto F_RUN_B1
@@ -204,12 +212,27 @@ F_RUN_B1:
     bsr PRINT_BEST
 F_SKIP_LT1:
 
+    print "--- --- --- --- --- --- --- --- --- ---\n"
     i = parents[3]
+    print "temp source inum="
+    print i
+    print "\n"
+
     engine."copy_to_temp"(i,1)
+    i = 1
+    bsr PRINT_TEMP_I
 
     engine."mutate_temp_naive"(1)
     nlen3 = engine."temp_indi_len"(1)
+
+    i = 1
+    bsr PRINT_TEMP_I
+    print "--- --- --- --- --- --- --- --- --- ---\n"
+
+    print "load_temp_indi(0)\n"
     engine."load_temp_indi"(1)
+
+    print "eval_body\n"
     nfit3 = eval_body()
 
     i = parents[1]
@@ -230,8 +253,14 @@ F_RUN_RW2:
     print ", new len="
     print nlen3
     print "\n"
+
+    engine."set_temp_indi_fitness"(1,nfit3)
     engine."rewrite_by_temp"(i,1)
-    engine."set_indi_fitness"(i,nfit3)
+
+    print "after rewrite inum="
+    print i
+    print "\n"
+    bsr PRINT_I
 
     if nfit3 > best_fitness goto F_SKIP_LT2
     if nfit3 < best_fitness goto F_RUN_B2
@@ -311,6 +340,12 @@ PRINT_POPULATION:
     print "printing full population:\n"
     
 NEXT_IN_PRINT_POPULATION:
+    bsr PRINT_I
+    inc i
+    if i < pop_size goto NEXT_IN_PRINT_POPULATION
+ret
+
+PRINT_I:
     print "indi: inum="
     print i
     print ", fitness="
@@ -322,8 +357,20 @@ NEXT_IN_PRINT_POPULATION:
     print ", code:\n"
     engine."indi_code"(i)
     print "\n"
-    inc i
-    if i < pop_size goto NEXT_IN_PRINT_POPULATION
+ret
+
+PRINT_TEMP_I:
+    print "temp_indi: inum="
+    print i
+    print ", fitness="
+    $I0 = engine."temp_indi_fitness"(i)
+    print $I0
+    print ", len="
+    $I0 = engine."temp_indi_len"(i)
+    print $I0
+    print ", code:\n"
+    engine."temp_indi_code"(i)
+    print "\n"
 ret
     
 END:

@@ -182,8 +182,8 @@ F_RUN_RW1:
 #    print ", new len="
 #    print nlen2
 #    print "\n"
+    engine."set_temp_indi_fitness"(0,nfit2)
     engine."rewrite_by_temp"(i,0)
-    engine."set_indi_fitness"(i,nfit2)
 
     if nfit2 > best_fitness goto F_SKIP_LT1
     if nfit2 < best_fitness goto F_RUN_B1
@@ -230,8 +230,8 @@ F_RUN_RW2:
 #    print ", new len="
 #    print nlen3
 #    print "\n"
+    engine."set_temp_indi_fitness"(1,nfit3)
     engine."rewrite_by_temp"(i,1)
-    engine."set_indi_fitness"(i,nfit3)
 
     if nfit3 > best_fitness goto F_SKIP_LT2
     if nfit3 < best_fitness goto F_RUN_B2

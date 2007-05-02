@@ -11,14 +11,8 @@ my $cmd;
 #  -j --jit-core
 #  -S --switched-core
   
-#$cmd = 'parrot.exe -C lgp12.pir 100000'; # 10 x 100tis
-#$cmd = 'parrot.exe -f lgp12.pir 100000'; # 10 x 100tis
-#$cmd = 'parrot.exe -g lgp12.pir 100000'; # 10 x 100tis
-#$cmd = 'parrot.exe -j lgp12.pir 100000'; # 10 x 100tis
-#$cmd = 'parrot.exe -S lgp12.pir 100000'; # 10 x 100tis
-#$cmd = 'parrot.exe lgp13.pir 100000'; # 10 x 100tis + 900tis
-
-$cmd = 'parrot\parrot.exe parrot-lgp\src\lgp.pir 50000';
+my $pop_size = defined($ARGV[0]) ? $ARGV[0] : 250_000;
+$cmd = "parrot\\parrot.exe parrot-lgp\\src\\lgp.pir $pop_size";
 print "cmd: '$cmd'\n";
 
 my $num = 50;

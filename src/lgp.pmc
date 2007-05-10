@@ -101,9 +101,13 @@ Parrot_dump_from_to (Interp* interp, opcode_t *pc, opcode_t *pc_end) {
 }
 
 
-pmclass LGP dynpmc need_ext extends Sub {
+pmclass LGP
+	need_ext
+	extends Sub
+	dynpmc
+	group lgp_group {
 
-    opcode_t* invoke (void* next) {
+	opcode_t* invoke (void* next) {
 		if ( init_done == 2 ) {
 			#if 0
 				opcode_t *prev;
@@ -638,6 +642,10 @@ pmclass LGP dynpmc need_ext extends Sub {
 
     METHOD INTVAL max_pop_size () {
 		return (INTVAL) MAX_POP_SIZE;
+	}
+
+	METHOD INTVAL indi_max_len () {
+		return (INTVAL) INDI_MAX_LEN;
 	}
 
     METHOD INTVAL pop_size () {

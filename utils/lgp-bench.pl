@@ -10,7 +10,7 @@ my $cmd;
 #  -g --computed-goto-core
 #  -j --jit-core
 #  -S --switched-core
-  
+
 my $pop_size = defined($ARGV[0]) ? $ARGV[0] : 250_000;
 $cmd = "parrot\\parrot.exe parrot-lgp\\src\\lgp.pir $pop_size";
 print "cmd: '$cmd'\n";
@@ -28,4 +28,4 @@ for (1..$num) {
 }
 
 my $t_avr = $t_sum / $num;
-print "average sum time: $t_avr"
+print "average sum time: $t_avr";

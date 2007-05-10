@@ -1,7 +1,29 @@
-# usign mutate_temp_naive
-# 
 .sub main :main
     get_params "(0)", $P10
+
+    .local string pir_code
+
+    .local pmc io, e
+    .local string file
+    .local int size
+    file = 'parrot-lgp/t/indi_sub.pir'
+    .include "stat.pasm"
+    size = stat file, .STAT_FILESIZE
+    io = open file, "<"
+    pir_code = read io, size
+    close io
+
+    .local pmc pir_compiler
+    pir_compiler = compreg "PIR"
+
+    .local pmc lgp_body
+    lgp_body = pir_compiler(pir_code)
+    
+    .local int type
+    type = typeof lgp_body
+    print "compiled_sub type: "
+    print type
+    print "\n"
 
     .local pmc lib
     lib = loadlib "LGP"
@@ -41,12 +63,12 @@ PARAMS_DONE:
 
     .local int best_inum, best_fitness, best_len
     .local int i, fit, len
-    .const .Sub lgp_body = 'lgp_body'
+    
     best_inum = 0
     best_fitness = 9999999
     best_len = 9999999
 
-    print "initial lgp_body() and init_indi():\n"
+    print "initial lgp_body() and prepare_lgp():\n"
     lgp_body()
     engine."prepare_lgp"(pop_size)
 
@@ -379,6 +401,3 @@ END:
     bsr PRINT_BEST
     print "done\n"
 .end
-
-
-.include 'parrot-lgp/t/lgp_body.pir'

@@ -28,146 +28,115 @@ pir_output_is(<< 'CODE', << 'OUTPUT', "loadlib");
 .sub main :main
     .local pmc lib
     lib = loadlib "lgp"
-    unless lib goto not_loaded
-    print "ok\n"
+    unless lib goto NOT_LOADED
+    print "lgp lib loaded\n"
+
+    $I0 = find_type "LGP"
+    if $I0 == 0 goto FIND_TYPE_ERR
+    print "find_type found LGP\n"
+    
+    .local pmc engine
+    engine = new $I0
+    
+    $S0 = typeof engine
+    print $S0
+    print "\n"
     end
-not_loaded:
-    print "not loaded\n"
+    
+NOT_LOADED:
+    print "lgp lib not loaded\n"
+    end
+FIND_TYPE_ERR:
+    print "find type return 0"
+    end
 .end
 CODE
-ok
+lgp lib loaded
+find_type found LGP
+LGP
 OUTPUT
 
-pir_output_is(<< 'CODE', << 'OUTPUT', "test type of HLL_mapped .Sub");
+pir_output_is(<< 'CODE', << 'OUTPUT', "loadlib (macro)");
+.loadlib "lgp"
+
 .sub main :main
-    .const .Sub b = 'bar'
-    $S0 = typeof b
+
+    $I0 = find_type "LGP"
+    if $I0 == 0 goto FIND_TYPE_ERR
+    print "find_type found LGP\n"
+    
+    .local pmc engine
+    engine = new $I0
+    
+    $S0 = typeof engine
     print $S0
     print "\n"
-    .const .Sub f = 'foo'
-    $S0 = typeof f
-    print $S0
-    print "\n"
-.end
-
-.sub bar
-    noop
-.end
-
-.HLL "Some", "lgp"
-.HLL_map .Sub, .LGP
-
-.sub foo
-    noop
+    end
+    
+FIND_TYPE_ERR:
+    print "find type return 0"
+    end
 .end
 CODE
-Sub
+find_type found LGP
 LGP
 OUTPUT
 
 
-pir_output_is(<< 'CODE', << 'OUTPUT', "eval eval_body individual");
-.sub main :main
-    print "loading lib\n"
-    .local pmc lib
-    lib = loadlib "LGP"
-    find_type $I0, "LGP"
+pir_output_is(<< 'CODE', << 'OUTPUT', "pasm compiler, namespace and prepare_sub");
+.loadlib "lgp"
 
-    print "creating engine\n"
+.sub main :main
+
+    $I0 = find_type "LGP"
+    if $I0 == 0 goto FIND_TYPE_ERR
+    
     .local pmc engine
     new engine, $I0
 
-    $S0 = typeof engine
-    print "loaded dynpmc: "
-    print $S0
-    print "\n"
+    .local string pir_code_lgp
 
-    print "getting eval_body\n"
-    .const .Sub indi = 'eval_body'
-    print "running eval_body first time\n"
-    eval_body()
-    print "preparing lgp\n"
-    engine.prepare_lgp(10)
-    print "evaluating body\n"
-    eval_body()
-    print "back in main\n"
-.end
-
-.HLL "Some", "lgp"
-.HLL_map .Sub, .LGP
-
-.sub eval_body
-    # init_indi hack begin
+    pir_code_lgp = <<'EOC_LGP'
+.namespace [ "LGP" ]
+.pcc_sub eval_body:
+    noop
     returncc
-    bsr INDI_CORE
-    # init_indi hack end
-
-    I0 = 10
-    I1 = 20
-    I3 = 5
-    bsr INDI_CORE
-    returncc
-
 INDI_CORE:
-    print "indi core begin\n"
-    I4 = I0 + I1
-    I4 += I3
-    I4 += 1
-    print I4
-    print "\n"
     noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    print "indi core end\n"
+    bsr INDI_CORE
     ret
+EOC_LGP
 
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
+    .local pmc pasm_compiler
+    pasm_compiler = compreg "PASM"
 
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
+    .local pmc eval_code
+    push_eh COMPILE_ERR
+    eval_code = pasm_compiler(pir_code_lgp)
+    clear_eh
 
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    ret
+    .local pmc eval_body
+    eval_body = get_global ['LGP'], 'eval_body'
+
+    $P0 = eval_body.'get_namespace'()
+    $P0 = $P0.'get_name'()
+    $S0 = join ';', $P0
+    print "namespace: '"
+    print $S0
+    print "'\n"
+
+    engine.prepare_sub( eval_body )
+    print "eval_body sub prepared\n"
+    end
+FIND_TYPE_ERR:
+    print "find_type for LGP failed\n"
+    end
+    
+COMPILE_ERR:
+    print "compilation failed\n"
+    end   
 .end
 CODE
-loading lib
-creating engine
-loaded dynpmc: LGP
-getting eval_body
-running eval_body first time
-preparing lgp
-evaluating body
-indi core begin
-36
-indi core end
-back in main
+namespace: 'parrot;LGP'
+eval_body sub prepared
 OUTPUT

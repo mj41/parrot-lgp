@@ -31,7 +31,7 @@ See
 
 === Update ===
  lgp-devel> svn up parrot-lgp
- lgp-devel> svn up parrot -r 18060
+ lgp-devel> svn up parrot -r 18568
  lgp-devel> cp ./parrot-lgp/src/lgp.pmc ./parrot/src/dynpmc/
  lgp-devel> cp ./parrot-lgp/src/lgp_conf.h ./parrot/src/dynpmc/
 

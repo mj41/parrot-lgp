@@ -101,67 +101,75 @@ Parrot_dump_from_to (Interp* interp, opcode_t *pc, opcode_t *pc_end) {
 }
 
 
-pmclass LGP
-	need_ext
-	extends Sub
-	dynpmc
-	group lgp_group {
+pmclass LGP need_ext dynpmc {
 
-	opcode_t* invoke (void* next) {
+	METHOD void prepare_sub (PMC* pmcsub) {
+		struct Parrot_sub *sub = PMC_sub(pmcsub);
+		opcode_t *pc;
+		opcode_t *pc_end;
+
 		if ( init_done == 2 ) {
-			#if 0
-				opcode_t *prev;
-				prev = &*( (opcode_t *)next - 1 );
-	  			PIO_printf(INTERP, "lgp invoke prev op %p %i\n", prev, *prev );
-	  			Parrot_dump_from_to(INTERP, prev-30, prev+1 );
-	  			PIO_printf(INTERP, "lgp invoke from %p %i\n", (opcode_t *)next, *(opcode_t *)next );
-	  			Parrot_dump_from_to(INTERP, (opcode_t *) next, &*(((opcode_t *) next) + 100) );
-	  		# endif
-
-		} else if ( init_done == 1 ) {
-			PIO_eprintf(INTERP, "You need call prepare_lgp(pop_size) first.");
+			PIO_eprintf(INTERP, "You need call prepare_sub() only once.");
 			Parrot_exit(INTERP, 1);
-
-		} else {
-			struct Parrot_sub * const sub = PMC_sub(SELF);
-			opcode_t *pc;
-			opcode_t *pc_end;
-
-			// find INDI_CORE
-			op_info_t* info;
-			epc_start = sub->seg->base.data + sub->start_offs;
-			epc_end = sub->seg->base.data + sub->end_offs;
-
-			pc = epc_start;
-			if ( *pc != 34 ) {
-				PIO_eprintf(INTERP, "First instruction is not 'returncc'.\n");
-				Parrot_exit(INTERP, 1);
-			}
-			if ( *(pc + 1) != 15 ) {
-				PIO_eprintf(INTERP, "Second instruction is not bsr.\n");
-				Parrot_exit(INTERP, 1);
-			}
-			// PIO_printf(INTERP, "bsr to +%ld\n", (INTVAL) pc[2]+1 );
-			ipc_start = pc + pc[2] + 1;
-			ipc_end = epc_end;
-
-			init_done = 1;
 		}
 
-		return SUPER(next);
+		// find INDI_CORE
+		epc_start = sub->seg->base.data + sub->start_offs;
+		epc_end = sub->seg->base.data + sub->end_offs;
+		//Parrot_dump_from_to(INTERP, epc_start, epc_end);
+
+		pc = epc_end - 1;
+		if ( *pc != 16 ) {
+			//PIO_eprintf(INTERP, "%p %ld\n", pc, *pc);
+			PIO_eprintf(INTERP, "Last instruction is not ret (16).\n");
+			Parrot_exit(INTERP, 1);
+		}
+
+		pc = pc - 2; // length of bsr is 2
+
+		if ( *pc != 15 ) {
+			PIO_eprintf(INTERP, "Last but one instruction is not bsr (15).\n");
+			//PIO_eprintf(INTERP, "%p %ld\n", pc, *pc);
+			Parrot_exit(INTERP, 1);
+		}
+		//PIO_printf(INTERP, "bsr to %ld\n", (INTVAL) pc[1] );
+		ipc_start = pc + pc[1]; // pc[1] is negative offset
+		ipc_end = epc_end;
+
+		// change "bsr INDI_CORE" to "ret\nret"
+		*pc = 16; // ret
+		*(pc+1) = 16; // ret
+		//PIO_eprintf(INTERP, "%p %ld, %p %ld\n", ipc_start, *ipc_start, ipc_end, *ipc_end);
+
+		init_done = 1;
+	}
+
+
+    /* set eval body individual code */
+    METHOD void set_ei (PMC* pmcsub) {
+		struct Parrot_sub *sub = PMC_sub(pmcsub);
+
+		opcode_t *sub_start;
+		opcode_t *sub_end;
+		sub_start = sub->seg->base.data + sub->start_offs;
+		sub_end = sub->seg->base.data + sub->end_offs;
+		//Parrot_dump_from_to(INTERP, sub_start, sub_end);
+		//PIO_eprintf(INTERP, "%ld\n\n", sub_end - sub_start);
+		memcpy(ipc_start, sub_start, (sub_end - sub_start)*sizeof(opcode_t) );
 	}
 
 
     METHOD void prepare_lgp (INTVAL t_pop_size) {
 		// todo - move a part of code from invoke method here
 
+
 		if ( init_done == 2 ) {
-			PIO_eprintf(INTERP, "You need call prepare_lgp(pop_size) only once.");
+			PIO_eprintf(INTERP, "You need call prepare_lgp() only once.");
 			Parrot_exit(INTERP, 1);
 		}
 
 		if ( init_done != 1 ) {
-			PIO_eprintf(INTERP, "You need invoke eval_body() first.");
+			PIO_eprintf(INTERP, "You need prepare_sub() first.");
 			Parrot_exit(INTERP, 1);
 		}
 
@@ -366,7 +374,6 @@ pmclass LGP
 		memcpy(ipc_start, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
 	}
 
-
 	METHOD PMC* get_parents () {
 		INTVAL r_inums[4];
 
@@ -407,7 +414,6 @@ pmclass LGP
     METHOD void rewrite_by_temp (INTVAL inum, INTVAL temp_inum) {
 		memcpy( &pop[inum], &pop[pop_size + temp_inum], sizeof(t_lgp_indi) );
 	}
-
 
     METHOD void mutate_temp (INTVAL temp_inum) {
 		// [operation code] [operands]*
@@ -635,7 +641,7 @@ pmclass LGP
 
 
     METHOD void ei_cdump () {
-		// eval body individual part code dump
+		// eval body individual code dump
 		Parrot_dump_from_to(INTERP, ipc_start, ipc_end);
     }
 

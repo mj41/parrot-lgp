@@ -83,7 +83,7 @@ LGP
 OUTPUT
 
 
-pir_output_is(<< 'CODE', << 'OUTPUT', "pasm compiler, namespace and prepare_sub");
+pir_output_is(<< 'CODE', << 'OUTPUT', "pasm compiler, namespace and prepare_eval_space");
 .loadlib "lgp"
 
 .sub main :main
@@ -98,7 +98,7 @@ pir_output_is(<< 'CODE', << 'OUTPUT', "pasm compiler, namespace and prepare_sub"
 
     pir_code_lgp = <<'EOC_LGP'
 .namespace [ "LGP" ]
-.pcc_sub eval_body:
+.pcc_sub eval_space:
     noop
     returncc
 INDI_CORE:
@@ -115,18 +115,18 @@ EOC_LGP
     eval_code = pasm_compiler(pir_code_lgp)
     clear_eh
 
-    .local pmc eval_body
-    eval_body = get_global ['LGP'], 'eval_body'
+    .local pmc eval_space
+    eval_space = get_global ['LGP'], 'eval_space'
 
-    $P0 = eval_body.'get_namespace'()
+    $P0 = eval_space.'get_namespace'()
     $P0 = $P0.'get_name'()
     $S0 = join ';', $P0
     print "namespace: '"
     print $S0
     print "'\n"
 
-    engine.prepare_sub( eval_body )
-    print "eval_body sub prepared\n"
+    engine.prepare_eval_space( eval_space )
+    print "eval_space sub prepared\n"
     end
 FIND_TYPE_ERR:
     print "find_type for LGP failed\n"
@@ -138,5 +138,5 @@ COMPILE_ERR:
 .end
 CODE
 namespace: 'parrot;LGP'
-eval_body sub prepared
+eval_space sub prepared
 OUTPUT

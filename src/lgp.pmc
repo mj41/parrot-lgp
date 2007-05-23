@@ -103,7 +103,7 @@ Parrot_dump_from_to (Interp* interp, opcode_t *pc, opcode_t *pc_end) {
 
 pmclass LGP need_ext dynpmc {
 
-	METHOD void prepare_sub (PMC* pmcsub) {
+	METHOD void prepare_eval_space (PMC* pmcsub) {
 		struct Parrot_sub *sub = PMC_sub(pmcsub);
 		opcode_t *pc;
 		opcode_t *pc_end;
@@ -145,8 +145,8 @@ pmclass LGP need_ext dynpmc {
 	}
 
 
-    /* set eval body individual code */
-    METHOD void set_ei (PMC* pmcsub) {
+    /* set eval space individual core */
+    METHOD void set_ic (PMC* pmcsub) {
 		struct Parrot_sub *sub = PMC_sub(pmcsub);
 
 		opcode_t *sub_start;
@@ -173,12 +173,12 @@ pmclass LGP need_ext dynpmc {
 			Parrot_exit(INTERP, 1);
 		}
 
-		// eval_body sub length have to be more longer or equal as INDI_MAX_LEN
+		// length of eval space individual core have to be more longer or equal as INDI_MAX_LEN
 		if ( ipc_end - ipc_start != INDI_MAX_LEN ) {
 			if ( ipc_end - ipc_start > INDI_MAX_LEN ) {
-				// PIO_eprintf(INTERP, "eval_body() len > INDI_MAX_LEN (%i > %i)\n", ipc_end - ipc_start, INDI_MAX_LEN);
+				// PIO_eprintf(INTERP, "eval_space() len > INDI_MAX_LEN (%i > %i)\n", ipc_end - ipc_start, INDI_MAX_LEN);
 			} else {
-				PIO_eprintf(INTERP, "eval_body() != INDI_MAX_LEN len (%i != %i)\n", ipc_end - ipc_start, INDI_MAX_LEN);
+				PIO_eprintf(INTERP, "eval_space() != INDI_MAX_LEN len (%i != %i)\n", ipc_end - ipc_start, INDI_MAX_LEN);
 				Parrot_exit(INTERP, 1);
 			}
 		}
@@ -275,8 +275,6 @@ pmclass LGP need_ext dynpmc {
 		*ipc = 16; // ret
 		//PIO_printf(INTERP, "r--- %p %i\n", ipc, *ipc );
 		last = g_last - 1;
-
-//		memcpy(&lgp_used_regs, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
 
 		INTVAL r_op, r_i, j;
 		op_info_t *info;
@@ -429,7 +427,7 @@ pmclass LGP need_ext dynpmc {
 			return;
 		}
 
-		// random position inside indi body
+		// random position inside indi code
 		size_t rand_position;
 		rand_position = rand() % (pop[pop_size + temp_inum].len - 1); // last instruction is 'ret'
 		// rand_position = 0; // debug
@@ -621,8 +619,8 @@ pmclass LGP need_ext dynpmc {
 	}
 
 
-    METHOD void eb_mdump () {
-		// eval body memory dump
+    METHOD void es_mdump () {
+		// eval space memory dump
 		PIO_printf(INTERP, "eval code start: %p\n", epc_start );
 		PIO_printf(INTERP, "indi core start: %p, indi relative start: %i\n", ipc_start, (INTVAL)(ipc_start-epc_start) );
 		PIO_printf(INTERP, "indi core end  : %p, indi relative end  : %i, indi len: %i\n",
@@ -634,14 +632,14 @@ pmclass LGP need_ext dynpmc {
 	}
 
 
-    METHOD void eb_cdump () {
-		// eval body code dump
+    METHOD void es_cdump () {
+		// eval space code dump
 		Parrot_dump_from_to(INTERP, epc_start, epc_end);
     }
 
 
-    METHOD void ei_cdump () {
-		// eval body individual code dump
+    METHOD void ic_cdump () {
+		// eval space individual core dump
 		Parrot_dump_from_to(INTERP, ipc_start, ipc_end);
     }
 

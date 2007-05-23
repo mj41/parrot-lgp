@@ -14,7 +14,7 @@
 
 .namespace [ "LGP" ]
 
-.pcc_sub eval_body:
+.pcc_sub eval_space:
 #   I0 + I0 + 5
     save 0
 
@@ -52,7 +52,7 @@ INDI_CORE:
     noop
     noop
     # next two instructions are mandatory
-    # see prepare_sub() in src/dynmpc/lgp.pmc
+    # see prepare_eval_space() in src/dynmpc/lgp.pmc
     bsr INDI_CORE
     ret
 
@@ -108,13 +108,13 @@ EOC_PI
     eval_code = pasm_compiler(pir_code_lgp)
     clear_eh
 
-    .local pmc eval_body
-    eval_body = get_global ['LGP'], 'eval_body'
+    .local pmc eval_space
+    eval_space = get_global ['LGP'], 'eval_space'
 
     .local int tn # test number
     tn = 1
 
-    engine.prepare_sub( eval_body )
+    engine.prepare_eval_space( eval_space )
     $S0 = 'default'
     $I0 = 130
     bsr COMPARE_FITNESS
@@ -163,11 +163,11 @@ EOC_PI
 
 TRY_PI:
     prep_indi = get_global ['PI'], $S0
-    engine.set_ei( prep_indi )
+    engine.set_ic( prep_indi )
 #    engine.ei_cdump()
 
 COMPARE_FITNESS:
-    $I1 = eval_body()
+    $I1 = eval_space()
     if $I0 == $I1 goto CF_OK
     print "not ok "
     print tn

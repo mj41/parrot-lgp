@@ -25,13 +25,6 @@ INTVAL lgp_out_regs[] = {
 	4
 };
 
-INTVAL lgp_used_reg_max_count = 4;
-typedef struct lgp_used_regs {
-	INTVAL count;
-	INTVAL regs[4];
-} t_lgp_used_regs;
-
-
 INTVAL check_op_count = 1; // lgp_ops[last] =  16, // ret
 INTVAL lgp_op_count  = 15;
 opcode_t lgp_ops[] = {

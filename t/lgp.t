@@ -5,7 +5,7 @@ use warnings;
 use lib qw( . lib ../lib ../../lib );
 use lib qw( ./parrot/lib );
 use Test::More;
-use Parrot::Test tests => 3;
+use Parrot::Test tests => 4;
 use Parrot::Config;
 
 
@@ -139,4 +139,74 @@ COMPILE_ERR:
 CODE
 namespace: 'parrot;LGP'
 eval_space sub prepared
+OUTPUT
+
+pir_output_is(<< 'CODE', << 'OUTPUT', "all for validate_conf");
+.loadlib "lgp"
+
+.sub main :main
+
+    $I0 = find_type "LGP"
+    if $I0 == 0 goto FIND_TYPE_ERR
+    
+    .local pmc engine
+    new engine, $I0
+
+    .local string pir_code_lgp
+
+    pir_code_lgp = <<'EOC_LGP'
+.namespace [ "LGP" ]
+.pcc_sub eval_space:
+    noop
+    returncc
+
+EOC_LGP
+
+    # adding indi core
+    pir_code_lgp = concat "INDI_CORE:\n"
+    .local int add_core_len
+    add_core_len = engine.'indi_max_len'()
+    add_core_len -= 2 # 'bsr' -2, 'ret' -1, + 1 for loop
+ADD_NOOP:    
+    pir_code_lgp = concat "    noop\n"
+    add_core_len -= 1
+    if add_core_len >= 0 goto ADD_NOOP
+    # mandatory instructions for prepare_eval_space()
+    pir_code_lgp = concat "    bsr INDI_CORE\n"
+    pir_code_lgp = concat "    ret\n"
+
+    .local pmc pasm_compiler
+    pasm_compiler = compreg "PASM"
+
+    .local pmc eval_code
+    push_eh COMPILE_ERR
+    eval_code = pasm_compiler(pir_code_lgp)
+    clear_eh
+
+    .local pmc eval_space
+    eval_space = get_global ['LGP'], 'eval_space'
+
+    engine.prepare_eval_space( eval_space )
+    print "eval_space sub prepared\n"
+
+    engine.set_pop_size(10)
+    print "population set\n"
+
+    engine.validate_conf()
+    
+    print "validation finished sucessful\n"
+
+    end
+FIND_TYPE_ERR:
+    print "find_type for LGP failed\n"
+    end
+    
+COMPILE_ERR:
+    print "compilation failed\n"
+    end   
+.end
+CODE
+eval_space sub prepared
+population set
+validation finished sucessful
 OUTPUT

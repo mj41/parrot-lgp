@@ -11,7 +11,7 @@ typedef struct lgp_indi {
     size_t			len;
 } t_lgp_indi;
 
-INTVAL pop_size = MAX_POP_SIZE;
+INTVAL pop_size = NULL;
 typedef t_lgp_indi t_pop[MAX_POP_SIZE + FIGHT_NUM];
 t_pop pop;
 

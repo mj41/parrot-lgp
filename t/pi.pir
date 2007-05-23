@@ -7,7 +7,7 @@
     
     .local pmc engine
     new engine, $I0
-
+   
     .local string pir_code_lgp
 
     pir_code_lgp = <<'EOC_LGP'
@@ -42,21 +42,21 @@ CALC_FITNESS:
     abs I31
     ret
 
-INDI_CORE:
-    set I1, 0
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    noop
-    # next two instructions are mandatory
-    # see prepare_eval_space() in src/dynmpc/lgp.pmc
-    bsr INDI_CORE
-    ret
-
 EOC_LGP
+
+    # adding indi core
+    pir_code_lgp = concat "INDI_CORE:\n"
+    .local int add_core_len
+    add_core_len = engine.'indi_max_len'()
+    add_core_len -= 2 # 'bsr' -2, 'ret' -1, + 1 for loop
+ADD_NOOP:    
+    pir_code_lgp = concat "    noop\n"
+    add_core_len -= 1
+    if add_core_len >= 0 goto ADD_NOOP
+    # mandatory instructions for prepare_eval_space()
+    pir_code_lgp = concat "    bsr INDI_CORE\n"
+    pir_code_lgp = concat "    ret\n"
+
 
     .local string pir_code_pi
     # PI prepared individuals
@@ -112,12 +112,12 @@ EOC_PI
     eval_space = get_global ['LGP'], 'eval_space'
 
     .local int tn # test number
-    tn = 1
+    tn = 0
 
     engine.prepare_eval_space( eval_space )
-    $S0 = 'default'
-    $I0 = 130
-    bsr COMPARE_FITNESS
+
+    engine.set_pop_size(10)
+    engine.validate_conf()
 
     push_eh COMPILE_ERR
     eval_code = pasm_compiler(pir_code_pi)

@@ -159,19 +159,22 @@ pmclass LGP need_ext dynpmc {
 	}
 
 
-    METHOD void prepare_lgp (INTVAL t_pop_size) {
+    METHOD void set_pop_size (INTVAL t_pop_size) {
+		if ( t_pop_size > MAX_POP_SIZE ) {
+			PIO_eprintf(INTERP, "pop_size <= MAX_POP_SIZE (%i <= %i) failed\n", t_pop_size, MAX_POP_SIZE);
+			Parrot_exit(INTERP, 1);
+		}
+
+		if ( t_pop_size < FIGHT_NUM*2 ) {
+			PIO_eprintf(INTERP, "pop_size >= FIGHT_NUM*2 (%i >= %i) failed\n", t_pop_size, FIGHT_NUM*2);
+			Parrot_exit(INTERP, 1);
+		}
+		pop_size = t_pop_size;
+	}
+
+
+    METHOD void validate_conf () {
 		// todo - move a part of code from invoke method here
-
-
-		if ( init_done == 2 ) {
-			PIO_eprintf(INTERP, "You need call prepare_lgp() only once.");
-			Parrot_exit(INTERP, 1);
-		}
-
-		if ( init_done != 1 ) {
-			PIO_eprintf(INTERP, "You need prepare_sub() first.");
-			Parrot_exit(INTERP, 1);
-		}
 
 		// length of eval space individual core have to be more longer or equal as INDI_MAX_LEN
 		if ( ipc_end - ipc_start != INDI_MAX_LEN ) {
@@ -183,85 +186,17 @@ pmclass LGP need_ext dynpmc {
 			}
 		}
 
-
-		if ( check_op_count ) {
-			int j, found = 0;
-			for ( j = 0; j < lgp_op_count; j++ ) {
-				if ( lgp_ops[j] == 16 ) {
-					if ( j != lgp_op_count - 1 ) {
-						PIO_eprintf(INTERP, "found 'ret' opcode, but as %i. opcode. seems like lgp_op_count=%i is wrong\n", j+1, lgp_op_count);
-						Parrot_exit(INTERP, 1);
-					}
-					found = 1;
-					break;
-				}
-			}
-			if ( found != 1 ) {
-				PIO_eprintf(INTERP, "'ret' opcode not found (lgp_op_count=%i)\n", lgp_op_count);
-				Parrot_exit(INTERP, 1);
-			}
-		}
-
-		if ( t_pop_size > MAX_POP_SIZE ) {
-			PIO_eprintf(INTERP, "pop_size <= MAX_POP_SIZE (%i <= %i) failed\n", t_pop_size, MAX_POP_SIZE);
+		if ( pop_size == NULL ) {
+			PIO_eprintf(INTERP, "pop_size is not set.\n");
 			Parrot_exit(INTERP, 1);
 		}
-
-		if ( t_pop_size < FIGHT_NUM*2 ) {
-			PIO_eprintf(INTERP, "pop_size >= FIGHT_NUM*2 (%i >= %i) failed\n", t_pop_size, FIGHT_NUM*2);
-			Parrot_exit(INTERP, 1);
-		}
-		pop_size = t_pop_size;
-
-		// randomize
-		srand((unsigned) time(NULL) );
-
-		// replace "returncc and bsr INDI_CORE" with "noop", "noop", "noop"
-		*(epc_start + 0) = 1;
-		*(epc_start + 1) = 1;
-		*(epc_start + 2) = 1;
-
-		init_done = 2;
 	}
 
 
-    METHOD void initialize_todebug (INTVAL inum) {
-		opcode_t *ipc;
-
-		if ( INDI_MAX_LEN < 27 ) {
-			PIO_printf(INTERP, "ERR: INDI_MAX_LEN < 26");
-			exit;
-		}
-
-		pop[inum].fitness = 0;
-		pop[inum].len = INDI_MAX_LEN;
-
-		INTVAL j;
-		ipc = pop[inum].code;
-		for ( j=0; j<INDI_MAX_LEN; j++ ) {
-			*(ipc + j) = 1; // noop
-		}
-
-		// print_s S0
-		*(ipc + 5) = 412;
-		*(ipc + 6) = 0;
-
-		// set_i_ic I4, 666
-		*(ipc + 12) =  825;
-		*(ipc + 13) =  4;
-		*(ipc + 14) =  666;
-
-		// print_s S0
-		*(ipc + 20) = 412;
-		*(ipc + 21) = 0;
-
-		// ret
-		*(ipc + 27) = 16;
-		*(ipc + INDI_MAX_LEN - 1) = 16;
-    }
-
-
     METHOD void initialize (INTVAL inum) {
+		// randomize
+		srand((unsigned) time(NULL) );
+
 		opcode_t *ipc_s, *ipc;
 		ipc_s = pop[inum].code;
 

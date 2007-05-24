@@ -25,8 +25,7 @@ INTVAL lgp_out_regs[] = {
 	3
 };
 
-INTVAL check_op_count = 1; // lgp_ops[last] =  16, // ret
-INTVAL lgp_op_count  = 15;
+INTVAL lgp_op_count  = 17;
 opcode_t lgp_ops[] = {
 	488, // 20 ... abs_i: i(io)
 	490, // 21 ... abs_i_i: i(o), i(i)
@@ -34,8 +33,8 @@ opcode_t lgp_ops[] = {
 	499, // 23 ... add_i_i_i: i(o), i(i), i(i)
 	// 505, // 24 ... cmod_i_i_i: i(o), i(i), i(i)
 	511, // 25 ... dec_i: i(io)
-	// 514, // 26 ... div_i_i: i(io), i(i)
-	// 518, // 27 ... div_i_i_i: i(o), i(i), i(i)
+	514, // 26 ... div_i_i: i(io), i(i)
+	518, // 27 ... div_i_i_i: i(o), i(i), i(i)
 	// 524, // 28 ... fdiv_i_i: i(io), i(i)
 	// 528, // 29 ... fdiv_i_i_i: i(o), i(i), i(i)
 	540, // 30 ... inc_i: i(io)

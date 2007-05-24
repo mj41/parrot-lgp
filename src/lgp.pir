@@ -47,6 +47,8 @@ PARAMS_DONE:
     # 3 3 3 - 14
     # 9 5 3 - 22
 
+    push_eh EXCEPTION
+
 #    print "null fitness\n"
     save 0
 
@@ -92,6 +94,7 @@ PARAMS_DONE:
 #    print "fintess: "
 #    print I31
 #    print "\n\n"
+    clear_eh
     set_returns "(0)", I31
     returncc
 
@@ -113,6 +116,10 @@ CALC_FITNESS:
 #    print I31
 #    print "\n"
     ret
+
+EXCEPTION:
+    set_returns "(0)", 9999999 
+    returncc
 
 EOC_LGP
 

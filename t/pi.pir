@@ -8,9 +8,9 @@
     .local pmc engine
     new engine, $I0
    
-    .local string pir_code_lgp
+    .local string pasm_eval_space
 
-    pir_code_lgp = <<'EOC_LGP'
+    pasm_eval_space = <<'EOC_LGP'
 
 .namespace [ "LGP" ]
 
@@ -45,17 +45,17 @@ CALC_FITNESS:
 EOC_LGP
 
     # adding indi core
-    pir_code_lgp = concat "INDI_CORE:\n"
+    pasm_eval_space = concat "INDI_CORE:\n"
     .local int add_core_len
     add_core_len = engine.'indi_max_len'()
     add_core_len -= 2 # 'bsr' -2, 'ret' -1, + 1 for loop
 ADD_NOOP:    
-    pir_code_lgp = concat "    noop\n"
+    pasm_eval_space = concat "    noop\n"
     add_core_len -= 1
     if add_core_len >= 0 goto ADD_NOOP
     # mandatory instructions for prepare_eval_space()
-    pir_code_lgp = concat "    bsr INDI_CORE\n"
-    pir_code_lgp = concat "    ret\n"
+    pasm_eval_space = concat "    bsr INDI_CORE\n"
+    pasm_eval_space = concat "    ret\n"
 
 
     .local string pir_code_pi
@@ -105,7 +105,7 @@ EOC_PI
 
     .local pmc eval_code
     push_eh COMPILE_ERR
-    eval_code = pasm_compiler(pir_code_lgp)
+    eval_code = pasm_compiler(pasm_eval_space)
     clear_eh
 
     .local pmc eval_space

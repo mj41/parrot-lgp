@@ -25,13 +25,13 @@ See
  > mkdir lgp-devel
  > cd lgp-devel
  lgp-devel> mkdir parrot-lgp
- lgp-devel> svn co https://pr.perl6.cz/svn/parrot-lgp/trunk/
+ lgp-devel> svn checkout https://pr.perl6.cz/svn/parrot-lgp/trunk/ parrot-lgp
  lgp-devel> mkdir parrot
- lgp-devel> svn co https://svn.perl.org/parrot/trunk/ parrot -r 1
+ lgp-devel> svn checkout https://svn.perl.org/parrot/trunk/ parrot -r 1
 
 === Update ===
- lgp-devel> svn up parrot-lgp
- lgp-devel> svn up parrot -r 18568
+ lgp-devel> svn update parrot-lgp
+ lgp-devel> svn update parrot -r 18568
  lgp-devel> cp ./parrot-lgp/src/lgp.pmc ./parrot/src/dynpmc/
  lgp-devel> cp ./parrot-lgp/src/lgp_conf.h ./parrot/src/dynpmc/
 

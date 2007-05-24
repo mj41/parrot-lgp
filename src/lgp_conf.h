@@ -17,12 +17,12 @@ t_pop pop;
 
 INTVAL lgp_in_reg_count  = 3;
 INTVAL lgp_in_regs[] = {
-	1, 2, 3
+	0, 1, 2
 };
 
 INTVAL lgp_out_reg_count  = 1;
 INTVAL lgp_out_regs[] = {
-	4
+	3
 };
 
 INTVAL check_op_count = 1; // lgp_ops[last] =  16, // ret

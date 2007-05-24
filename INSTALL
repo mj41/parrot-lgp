@@ -25,7 +25,7 @@ See
  > mkdir lgp-devel
  > cd lgp-devel
  lgp-devel> mkdir parrot-lgp
- lgp-devel> svn co https://perl6.cz/svn/parrot-lgp/trunk/ parrot-lgp
+ lgp-devel> svn co https://pr.perl6.cz/svn/parrot-lgp/trunk/
  lgp-devel> mkdir parrot
  lgp-devel> svn co https://svn.perl.org/parrot/trunk/ parrot -r 1
 

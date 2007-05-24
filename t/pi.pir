@@ -164,7 +164,7 @@ EOC_PI
 TRY_PI:
     prep_indi = get_global ['PI'], $S0
     engine.set_ic( prep_indi )
-#    engine.ei_cdump()
+#    engine.ic_cdump()
 
 COMPARE_FITNESS:
     $I1 = eval_space()
@@ -201,5 +201,3 @@ COMPILE_ERR:
     print "compilation failed\n"
     end   
 .end
-
-

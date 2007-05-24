@@ -1,0 +1,1 @@
+@perl parrot-lgp\utils\todebug.pl parrot-lgp\src\lgp.pir > parrot-lgp\src\lgp-debug.pir && echo done

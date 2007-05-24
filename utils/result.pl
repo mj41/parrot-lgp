@@ -52,9 +52,9 @@ print "\n";
 
 my $fit_len_m;
 print "statistics of length grouped by indi fitness:\n";
-foreach my $key ( sort keys %$rh_fit_len ) {
+foreach my $key ( sort { $a <=> $b } keys %$rh_fit_len ) {
     my $val = $rh_fit_len->{ $key };
-    printf "fitness=%2d ", $key;
+    printf "fitness=%3d ", $key;
     printf "(results:%2d): ", scalar( @$val );
     $fit_len_m = Statistics::Basic::Median->new( $val )->query;
     printf "length median: %.3f, ", $fit_len_m;
@@ -78,9 +78,9 @@ print "\n";
 
 my $len_fit_m;
 print "statistics of fitness grouped by indi length:\n";
-foreach my $key ( sort keys %$rh_len_fit ) {
+foreach my $key ( sort { $a <=> $b } keys %$rh_len_fit ) {
     my $val = $rh_len_fit->{ $key };
-    printf "length=%2d ", $key;
+    printf "length=%3d ", $key;
     printf "(results:%2d): " , scalar(@$val);
     $len_fit_m = Statistics::Basic::Median->new( $val )->query;
     printf "fitness median: %.3f, ", $len_fit_m;

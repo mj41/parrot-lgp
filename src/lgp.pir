@@ -17,7 +17,7 @@
     eq $I10, 2, PS_PARAM_OK
 
     print "setting default params\n"
-#   pop_size = max_pop_size
+    #pop_size = max_pop_size
     pop_size = 100000                            #@ pop_size = 10
     print "pop_size="
     print pop_size
@@ -41,16 +41,16 @@ PARAMS_DONE:
 .namespace [ "LGP" ]
 
 .pcc_sub eval_space:
-# i1 + i2 + i3 + 5
-# 3 2 1 - 11
-# 3 3 1 - 12
-# 3 3 3 - 14
-# 9 5 3 - 22
+    # i1 + i2 + i3 + 5
+    # 3 2 1 - 11
+    # 3 3 1 - 12
+    # 3 3 3 - 14
+    # 9 5 3 - 22
 
-# error
+#    print "null fitness\n"
     save 0
 
-#   set: 0
+    # set: 0
     set I0, 3
     set I1, 2
     set I2, 1
@@ -60,7 +60,7 @@ PARAMS_DONE:
     bsr CALC_FITNESS
     save I31
 
-#   set: 1
+    # set: 1
     set I0, 3
     set I1, 3
     set I2, 1
@@ -70,7 +70,7 @@ PARAMS_DONE:
     bsr CALC_FITNESS
     save I31
 
-#   set: 2
+    # set: 2
     set I0, 3
     set I1, 3
     set I2, 3
@@ -80,7 +80,7 @@ PARAMS_DONE:
     bsr CALC_FITNESS
     save I31
 
-#   set: 3
+    # set: 3
     set I0, 9
     set I1, 5
     set I2, 3
@@ -89,6 +89,9 @@ PARAMS_DONE:
     set I0, 22
     bsr CALC_FITNESS
 
+#    print "fintess: "
+#    print I31
+#    print "\n\n"
     set_returns "(0)", I31
     returncc
 

@@ -16,7 +16,7 @@ print "\n";
 my $fh;
 open( $fh, '<' . $ifn ) or croak;
 my ( $fit, $len, $time );
-my ( $ra_fit, $ra_len, $ra_time );
+my ( $ra_fit, $ra_len, $ra_time ) = ( [], [], [] );
 
 my ( $rh_fit_len, $rh_len_fit );
 while ( my $line = <$fh> ) {
@@ -39,6 +39,7 @@ my ( $fit_m, $len_m, $time_m );
 print "num of results found: " . scalar( @$ra_fit ) . "\n";
 print "\n";
 
+exit if scalar(@$ra_fit) == 0;
 
 # fitness
 $fit_m = Statistics::Basic::Mean->new( $ra_fit )->query;

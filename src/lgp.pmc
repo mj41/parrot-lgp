@@ -10,619 +10,619 @@ opcode_t *ipc_end;
 
 static int
 Parrot_quicksort_fitness_partition(INTVAL a[], int p, int r) {
-	int x = a[r];
-	int j = p - 1;
-	int i;
-	for (i = p; i < r; i++) {
-		if ( pop[ x ].fitness <= pop[ a[i] ].fitness ) {
-			j = j + 1;
-			int temp = a[j];
-			a[j] = a[i];
-			a[i] = temp;
-		}
-	}
-	a[r] = a[j + 1];
-	a[j + 1] = x;
+    int x = a[r];
+    int j = p - 1;
+    int i;
+    for (i = p; i < r; i++) {
+        if ( pop[ x ].fitness <= pop[ a[i] ].fitness ) {
+            j = j + 1;
+            int temp = a[j];
+            a[j] = a[i];
+            a[i] = temp;
+        }
+    }
+    a[r] = a[j + 1];
+    a[j + 1] = x;
 
-	return (j + 1);
+    return (j + 1);
 }
 
 
 static void
 Parrot_quicksort_fitness (INTVAL a[], int p, int r) {
-	if (p < r) {
-		int q = Parrot_quicksort_fitness_partition(a, p, r);
-		Parrot_quicksort_fitness(a, p, q - 1);
-		Parrot_quicksort_fitness(a, q + 1, r);
-	}
+    if (p < r) {
+        int q = Parrot_quicksort_fitness_partition(a, p, r);
+        Parrot_quicksort_fitness(a, p, q - 1);
+        Parrot_quicksort_fitness(a, q + 1, r);
+    }
 }
 
 
 static void
 Parrot_dump_from_to (Interp* interp, opcode_t *pc, opcode_t *pc_end) {
 
-	//PIO_printf(interp, "----- %p\n", pc );
-	//PIO_printf(interp, "----- %p\n", pc_end );
-	op_info_t* info;
-	int j, rop_num, op_num;
-	rop_num = 0;
-	op_num = 0;
-	while ( pc < pc_end ) {
-		info = &interp->op_info_table[*pc];
-		PIO_printf(interp, "%3i +%1i %3i %p", rop_num, info->op_count, op_num, pc );
+    //PIO_printf(interp, "----- %p\n", pc );
+    //PIO_printf(interp, "----- %p\n", pc_end );
+    op_info_t* info;
+    int j, rop_num, op_num;
+    rop_num = 0;
+    op_num = 0;
+    while ( pc < pc_end ) {
+        info = &interp->op_info_table[*pc];
+        PIO_printf(interp, "%3i +%1i %3i %p", rop_num, info->op_count, op_num, pc );
 
-		PIO_printf(interp, " %4ld", *pc );
-		PIO_printf(interp, " %s", info->full_name );
-		for (j = 1; j < info->op_count; j++) {
-			INTVAL i = 0;
-			switch (info->types[j-1]) {
-				case PARROT_ARG_I:
-					PIO_printf(interp," I");
-					goto INTEGER;
-				case PARROT_ARG_N:
-					PIO_printf(interp," N");
-					goto INTEGER;
-				case PARROT_ARG_S:
-					PIO_printf(interp," S");
-					goto INTEGER;
-				case PARROT_ARG_P:
-					PIO_printf(interp," P");
-					goto INTEGER;
-				case PARROT_ARG_IC:
-					PIO_printf(interp," ");
-					if ((j == info->op_count - 1) &&
-						(info->jump & PARROT_JUMP_RELATIVE))
-					{
-						if (pc[j] > 0) PIO_printf(interp,"+");
-						i = pc[j];
-					}
+        PIO_printf(interp, " %4ld", *pc );
+        PIO_printf(interp, " %s", info->full_name );
+        for (j = 1; j < info->op_count; j++) {
+            INTVAL i = 0;
+            switch (info->types[j-1]) {
+                case PARROT_ARG_I:
+                    PIO_printf(interp," I");
+                    goto INTEGER;
+                case PARROT_ARG_N:
+                    PIO_printf(interp," N");
+                    goto INTEGER;
+                case PARROT_ARG_S:
+                    PIO_printf(interp," S");
+                    goto INTEGER;
+                case PARROT_ARG_P:
+                    PIO_printf(interp," P");
+                    goto INTEGER;
+                case PARROT_ARG_IC:
+                    PIO_printf(interp," ");
+                    if ((j == info->op_count - 1) &&
+                        (info->jump & PARROT_JUMP_RELATIVE))
+                    {
+                        if (pc[j] > 0) PIO_printf(interp,"+");
+                        i = pc[j];
+                    }
 
-					INTEGER:
-					if (i == 0) i = (INTVAL) pc[j];
-					PIO_printf(interp, INTVAL_FMT, i);
-					break;
+                    INTEGER:
+                    if (i == 0) i = (INTVAL) pc[j];
+                    PIO_printf(interp, INTVAL_FMT, i);
+                    break;
 
-				default:
-					PIO_printf(interp, " |" );
-					PIO_printf(interp, INTVAL_FMT, (INTVAL) pc[j]);
-					PIO_printf(interp, "|" );
-					break;
+                default:
+                    PIO_printf(interp, " |" );
+                    PIO_printf(interp, INTVAL_FMT, (INTVAL) pc[j]);
+                    PIO_printf(interp, "|" );
+                    break;
 
-			}
-			if (j != info->op_count - 1)
-				PIO_printf(interp,",");
-		}
+            }
+            if (j != info->op_count - 1)
+                PIO_printf(interp,",");
+        }
 
-		PIO_printf(interp, "\n" );
-		pc += info->op_count;
-		rop_num++;
-		op_num += info->op_count;
-	}
+        PIO_printf(interp, "\n" );
+        pc += info->op_count;
+        rop_num++;
+        op_num += info->op_count;
+    }
 }
 
 
 pmclass LGP need_ext dynpmc {
 
-	METHOD void prepare_eval_space (PMC* pmcsub) {
-		struct Parrot_sub *sub = PMC_sub(pmcsub);
-		opcode_t *pc;
-		opcode_t *pc_end;
+    METHOD void prepare_eval_space (PMC* pmcsub) {
+        struct Parrot_sub *sub = PMC_sub(pmcsub);
+        opcode_t *pc;
+        opcode_t *pc_end;
 
-		if ( init_done == 2 ) {
-			PIO_eprintf(INTERP, "You need call prepare_sub() only once.");
-			Parrot_exit(INTERP, 1);
-		}
+        if ( init_done == 2 ) {
+            PIO_eprintf(INTERP, "You need call prepare_sub() only once.");
+            Parrot_exit(INTERP, 1);
+        }
 
-		// find INDI_CORE
-		epc_start = sub->seg->base.data + sub->start_offs;
-		epc_end = sub->seg->base.data + sub->end_offs;
-		//Parrot_dump_from_to(INTERP, epc_start, epc_end);
+        // find INDI_CORE
+        epc_start = sub->seg->base.data + sub->start_offs;
+        epc_end = sub->seg->base.data + sub->end_offs;
+        //Parrot_dump_from_to(INTERP, epc_start, epc_end);
 
-		pc = epc_end - 1;
-		if ( *pc != 16 ) {
-			//PIO_eprintf(INTERP, "%p %ld\n", pc, *pc);
-			PIO_eprintf(INTERP, "Last instruction is not ret (16).\n");
-			Parrot_exit(INTERP, 1);
-		}
+        pc = epc_end - 1;
+        if ( *pc != 16 ) {
+            //PIO_eprintf(INTERP, "%p %ld\n", pc, *pc);
+            PIO_eprintf(INTERP, "Last instruction is not ret (16).\n");
+            Parrot_exit(INTERP, 1);
+        }
 
-		pc = pc - 2; // length of bsr is 2
+        pc = pc - 2; // length of bsr is 2
 
-		if ( *pc != 15 ) {
-			PIO_eprintf(INTERP, "Last but one instruction is not bsr (15).\n");
-			//PIO_eprintf(INTERP, "%p %ld\n", pc, *pc);
-			Parrot_exit(INTERP, 1);
-		}
-		//PIO_printf(INTERP, "bsr to %ld\n", (INTVAL) pc[1] );
-		ipc_start = pc + pc[1]; // pc[1] is negative offset
-		ipc_end = epc_end;
+        if ( *pc != 15 ) {
+            PIO_eprintf(INTERP, "Last but one instruction is not bsr (15).\n");
+            //PIO_eprintf(INTERP, "%p %ld\n", pc, *pc);
+            Parrot_exit(INTERP, 1);
+        }
+        //PIO_printf(INTERP, "bsr to %ld\n", (INTVAL) pc[1] );
+        ipc_start = pc + pc[1]; // pc[1] is negative offset
+        ipc_end = epc_end;
 
-		// change "bsr INDI_CORE" to "ret\nret"
-		*pc = 16; // ret
-		*(pc+1) = 16; // ret
-		//PIO_eprintf(INTERP, "%p %ld, %p %ld\n", ipc_start, *ipc_start, ipc_end, *ipc_end);
+        // change "bsr INDI_CORE" to "ret\nret"
+        *pc = 16; // ret
+        *(pc+1) = 16; // ret
+        //PIO_eprintf(INTERP, "%p %ld, %p %ld\n", ipc_start, *ipc_start, ipc_end, *ipc_end);
 
-		init_done = 1;
-	}
+        init_done = 1;
+    }
 
 
     /* set eval space individual core */
     METHOD void set_ic (PMC* pmcsub) {
-		struct Parrot_sub *sub = PMC_sub(pmcsub);
+        struct Parrot_sub *sub = PMC_sub(pmcsub);
 
-		opcode_t *sub_start;
-		opcode_t *sub_end;
-		sub_start = sub->seg->base.data + sub->start_offs;
-		sub_end = sub->seg->base.data + sub->end_offs;
-		//Parrot_dump_from_to(INTERP, sub_start, sub_end);
-		//PIO_eprintf(INTERP, "%ld\n\n", sub_end - sub_start);
-		memcpy(ipc_start, sub_start, (sub_end - sub_start)*sizeof(opcode_t) );
-	}
+        opcode_t *sub_start;
+        opcode_t *sub_end;
+        sub_start = sub->seg->base.data + sub->start_offs;
+        sub_end = sub->seg->base.data + sub->end_offs;
+        //Parrot_dump_from_to(INTERP, sub_start, sub_end);
+        //PIO_eprintf(INTERP, "%ld\n\n", sub_end - sub_start);
+        memcpy(ipc_start, sub_start, (sub_end - sub_start)*sizeof(opcode_t) );
+    }
 
 
     METHOD void set_pop_size (INTVAL t_pop_size) {
-		if ( t_pop_size > MAX_POP_SIZE ) {
-			PIO_eprintf(INTERP, "pop_size <= MAX_POP_SIZE (%i <= %i) failed\n", t_pop_size, MAX_POP_SIZE);
-			Parrot_exit(INTERP, 1);
-		}
+        if ( t_pop_size > MAX_POP_SIZE ) {
+            PIO_eprintf(INTERP, "pop_size <= MAX_POP_SIZE (%i <= %i) failed\n", t_pop_size, MAX_POP_SIZE);
+            Parrot_exit(INTERP, 1);
+        }
 
-		if ( t_pop_size < FIGHT_NUM*2 ) {
-			PIO_eprintf(INTERP, "pop_size >= FIGHT_NUM*2 (%i >= %i) failed\n", t_pop_size, FIGHT_NUM*2);
-			Parrot_exit(INTERP, 1);
-		}
-		pop_size = t_pop_size;
-	}
+        if ( t_pop_size < FIGHT_NUM*2 ) {
+            PIO_eprintf(INTERP, "pop_size >= FIGHT_NUM*2 (%i >= %i) failed\n", t_pop_size, FIGHT_NUM*2);
+            Parrot_exit(INTERP, 1);
+        }
+        pop_size = t_pop_size;
+    }
 
 
     METHOD void validate_conf () {
-		// todo - move a part of code from invoke method here
+        // todo - move a part of code from invoke method here
 
-		// length of eval space individual core have to be more longer or equal as INDI_MAX_LEN
-		if ( ipc_end - ipc_start != INDI_MAX_LEN ) {
-			if ( ipc_end - ipc_start > INDI_MAX_LEN ) {
-				// PIO_eprintf(INTERP, "eval_space() len > INDI_MAX_LEN (%i > %i)\n", ipc_end - ipc_start, INDI_MAX_LEN);
-			} else {
-				PIO_eprintf(INTERP, "eval_space() != INDI_MAX_LEN len (%i != %i)\n", ipc_end - ipc_start, INDI_MAX_LEN);
-				Parrot_exit(INTERP, 1);
-			}
-		}
+        // length of eval space individual core have to be more longer or equal as INDI_MAX_LEN
+        if ( ipc_end - ipc_start != INDI_MAX_LEN ) {
+            if ( ipc_end - ipc_start > INDI_MAX_LEN ) {
+                // PIO_eprintf(INTERP, "eval_space() len > INDI_MAX_LEN (%i > %i)\n", ipc_end - ipc_start, INDI_MAX_LEN);
+            } else {
+                PIO_eprintf(INTERP, "eval_space() != INDI_MAX_LEN len (%i != %i)\n", ipc_end - ipc_start, INDI_MAX_LEN);
+                Parrot_exit(INTERP, 1);
+            }
+        }
 
-		if ( pop_size == NULL ) {
-			PIO_eprintf(INTERP, "pop_size is not set.\n");
-			Parrot_exit(INTERP, 1);
-		}
-	}
+        if ( pop_size == NULL ) {
+            PIO_eprintf(INTERP, "pop_size is not set.\n");
+            Parrot_exit(INTERP, 1);
+        }
+    }
 
 
     METHOD void initialize (INTVAL inum) {
-		// randomize
-		srand((unsigned) time(NULL) );
+        // randomize
+        srand((unsigned) time(NULL) );
 
-		opcode_t *ipc_s, *ipc;
-		ipc_s = pop[inum].code;
+        opcode_t *ipc_s, *ipc;
+        ipc_s = pop[inum].code;
 
-		INTVAL g_last, last;
-		g_last = rand() % ( INDI_MAX_LEN - 1 ) + 1;
-		pop[inum].fitness = 0;
-		pop[inum].len = g_last + 1;
+        INTVAL g_last, last;
+        g_last = rand() % ( INDI_MAX_LEN - 1 ) + 1;
+        pop[inum].fitness = 0;
+        pop[inum].len = g_last + 1;
 
-		//PIO_printf(INTERP, "b--- %p %i (+%i)\n", ipc, *ipc, g_last );
-		ipc = ipc_s + g_last;
-		*ipc = 16; // ret
-		//PIO_printf(INTERP, "r--- %p %i\n", ipc, *ipc );
-		last = g_last - 1;
+        //PIO_printf(INTERP, "b--- %p %i (+%i)\n", ipc, *ipc, g_last );
+        ipc = ipc_s + g_last;
+        *ipc = 16; // ret
+        //PIO_printf(INTERP, "r--- %p %i\n", ipc, *ipc );
+        last = g_last - 1;
 
-		INTVAL r_op, r_i, j;
-		op_info_t *info;
-		while ( last >= 0 ) {
-			//PIO_printf(INTERP, "----------------- %i z %i\n", last+1, g_last+1);
-			//PIO_printf(INTERP, "r_op: " );
-			do {
-				r_op = lgp_ops[ rand() % lgp_op_count ];
-	  			info = &INTERP->op_info_table[r_op];
-				//PIO_printf(INTERP, "%i (%i), ", r_op, info->op_count-1 );
-			} while ( info->op_count-1 > last );
-			//PIO_printf(INTERP, "%s \n", info->full_name );
-			ipc = &*(ipc - info->op_count);
-			*ipc = r_op;
-			//Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[inum].len) );
-			//PIO_printf(INTERP, "\n");
+        INTVAL r_op, r_i, j;
+        op_info_t *info;
+        while ( last >= 0 ) {
+            //PIO_printf(INTERP, "----------------- %i z %i\n", last+1, g_last+1);
+            //PIO_printf(INTERP, "r_op: " );
+            do {
+                r_op = lgp_ops[ rand() % lgp_op_count ];
+                info = &INTERP->op_info_table[r_op];
+                //PIO_printf(INTERP, "%i (%i), ", r_op, info->op_count-1 );
+            } while ( info->op_count-1 > last );
+            //PIO_printf(INTERP, "%s \n", info->full_name );
+            ipc = &*(ipc - info->op_count);
+            *ipc = r_op;
+            //Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[inum].len) );
+            //PIO_printf(INTERP, "\n");
 
-			for (j = 0; j < (info->op_count-1); j++) {
-				switch (info->types[j]) {
-					case PARROT_ARG_I:
-						r_i = rand() % (lgp_out_reg_count + lgp_in_reg_count);
-						if ( r_i < lgp_out_reg_count ) {
-							r_i = lgp_out_regs[ r_i ];
-						} else {
-							r_i -= lgp_out_reg_count;
-							r_i = lgp_in_regs[ r_i ];
-						}
-						//PIO_printf(INTERP, "r_i %i z %i: %i\n", j+1, (info->op_count-1), r_i );
-						*(ipc+j+1) = r_i;
-						break;
-					default:
-						PIO_eprintf(INTERP, "Can't generate operand with type=%i, op_count=%i, op=%i\n", info->types[j], info->op_count, r_op );
-						exit;
-						break;
-				}
-			}
-			last = last - info->op_count;
-			//Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[inum].len ) );
-		}
+            for (j = 0; j < (info->op_count-1); j++) {
+                switch (info->types[j]) {
+                    case PARROT_ARG_I:
+                        r_i = rand() % (lgp_out_reg_count + lgp_in_reg_count);
+                        if ( r_i < lgp_out_reg_count ) {
+                            r_i = lgp_out_regs[ r_i ];
+                        } else {
+                            r_i -= lgp_out_reg_count;
+                            r_i = lgp_in_regs[ r_i ];
+                        }
+                        //PIO_printf(INTERP, "r_i %i z %i: %i\n", j+1, (info->op_count-1), r_i );
+                        *(ipc+j+1) = r_i;
+                        break;
+                    default:
+                        PIO_eprintf(INTERP, "Can't generate operand with type=%i, op_count=%i, op=%i\n", info->types[j], info->op_count, r_op );
+                        exit;
+                        break;
+                }
+            }
+            last = last - info->op_count;
+            //Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[inum].len ) );
+        }
     }
 
 
     METHOD void indi_code (INTVAL inum) {
-		// pop[num] individual code dump
-		opcode_t *ipc_s;
-		ipc_s = pop[inum].code;
-		Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[inum].len) );
+        // pop[num] individual code dump
+        opcode_t *ipc_s;
+        ipc_s = pop[inum].code;
+        Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[inum].len) );
     }
 
     METHOD void temp_indi_code (INTVAL temp_inum) {
-		// pop[pop_size + temp_inum] individual code dump
-		opcode_t *ipc_s;
-		ipc_s = pop[pop_size + temp_inum].code;
-		Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[pop_size + temp_inum].len) );
-	}
+        // pop[pop_size + temp_inum] individual code dump
+        opcode_t *ipc_s;
+        ipc_s = pop[pop_size + temp_inum].code;
+        Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[pop_size + temp_inum].len) );
+    }
 
 
     METHOD INTVAL indi_len (INTVAL inum) {
-		// pop[num] individual len
-		return pop[inum].len;
+        // pop[num] individual len
+        return pop[inum].len;
     }
 
     METHOD INTVAL temp_indi_len (INTVAL temp_inum) {
-		// pop[pop_size + temp_inum] individual len
-		return pop[pop_size + temp_inum].len;
-	}
+        // pop[pop_size + temp_inum] individual len
+        return pop[pop_size + temp_inum].len;
+    }
 
 
     METHOD INTVAL indi_fitness (INTVAL inum) {
-		// pop[num] individual fitness
-		return pop[inum].fitness;
+        // pop[num] individual fitness
+        return pop[inum].fitness;
     }
 
     METHOD INTVAL temp_indi_fitness (INTVAL temp_inum) {
-		// pop[pop_size + temp_inum] individual fitness
-		return pop[pop_size + temp_inum].fitness;
+        // pop[pop_size + temp_inum] individual fitness
+        return pop[pop_size + temp_inum].fitness;
     }
 
 
     METHOD void set_indi_fitness (INTVAL inum, INTVAL fitness) {
-		// set pop[num] individual fitness
-		pop[inum].fitness = fitness;
+        // set pop[num] individual fitness
+        pop[inum].fitness = fitness;
     }
 
     METHOD void set_temp_indi_fitness (INTVAL temp_inum, INTVAL fitness) {
-		// set pop[pop_size + temp_inum] individual fitness
-		pop[pop_size + temp_inum].fitness = fitness;
+        // set pop[pop_size + temp_inum] individual fitness
+        pop[pop_size + temp_inum].fitness = fitness;
     }
 
 
     METHOD void load_indi (INTVAL inum) {
-		opcode_t *ipc_src;
-		ipc_src = pop[inum].code;
-		// PIO_eprintf(INTERP, "Will copy %i bytes, from %p to %p\n", (INDI_MAX_LEN*sizeof(opcode_t)), ipc_src, ipc_start );
-		memcpy(ipc_start, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
-	}
+        opcode_t *ipc_src;
+        ipc_src = pop[inum].code;
+        // PIO_eprintf(INTERP, "Will copy %i bytes, from %p to %p\n", (INDI_MAX_LEN*sizeof(opcode_t)), ipc_src, ipc_start );
+        memcpy(ipc_start, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
+    }
 
-	METHOD PMC* get_parents () {
-		INTVAL r_inums[4];
+    METHOD PMC* get_parents () {
+        INTVAL r_inums[4];
 
-		r_inums[0] = rand() % pop_size;
+        r_inums[0] = rand() % pop_size;
 
-		do {
-			r_inums[1] = rand() % pop_size;
-		} while ( r_inums[1] == r_inums[0] );
+        do {
+            r_inums[1] = rand() % pop_size;
+        } while ( r_inums[1] == r_inums[0] );
 
-		do {
-			r_inums[2] = rand() % pop_size;
-		} while ( r_inums[2] == r_inums[0] || r_inums[2] == r_inums[1] );
+        do {
+            r_inums[2] = rand() % pop_size;
+        } while ( r_inums[2] == r_inums[0] || r_inums[2] == r_inums[1] );
 
-		do {
-			r_inums[3] = rand() % pop_size;
-		} while ( r_inums[3] == r_inums[0] || r_inums[3] == r_inums[1] || r_inums[3] == r_inums[2] );
+        do {
+            r_inums[3] = rand() % pop_size;
+        } while ( r_inums[3] == r_inums[0] || r_inums[3] == r_inums[1] || r_inums[3] == r_inums[2] );
 
-		//PIO_eprintf(INTERP, "unsorted nums: %i (%i), %i (%i), %i (%i), %i (%i)\n", r_inums[0], pop[r_inums[0]].fitness, r_inums[1], pop[ r_inums[1] ].fitness, r_inums[2], pop[ r_inums[2] ].fitness, r_inums[3], pop[ r_inums[3] ].fitness  );
-		Parrot_quicksort_fitness(r_inums, 0, 4-1);
-		//PIO_eprintf(INTERP, "unsorted nums: %i (%i), %i (%i), %i (%i), %i (%i)\n", r_inums[0], pop[r_inums[0]].fitness, r_inums[1], pop[r_inums[1]].fitness, r_inums[2], pop[r_inums[2]].fitness, r_inums[3], pop[r_inums[3]].fitness  );
+        //PIO_eprintf(INTERP, "unsorted nums: %i (%i), %i (%i), %i (%i), %i (%i)\n", r_inums[0], pop[r_inums[0]].fitness, r_inums[1], pop[ r_inums[1] ].fitness, r_inums[2], pop[ r_inums[2] ].fitness, r_inums[3], pop[ r_inums[3] ].fitness  );
+        Parrot_quicksort_fitness(r_inums, 0, 4-1);
+        //PIO_eprintf(INTERP, "unsorted nums: %i (%i), %i (%i), %i (%i), %i (%i)\n", r_inums[0], pop[r_inums[0]].fitness, r_inums[1], pop[r_inums[1]].fitness, r_inums[2], pop[r_inums[2]].fitness, r_inums[3], pop[r_inums[3]].fitness  );
 
-		PMC *array;
-		array = pmc_new(INTERP, enum_class_FixedPMCArray);
-		VTABLE_set_integer_native(INTERP, array, 4);
+        PMC *array;
+        array = pmc_new(INTERP, enum_class_FixedPMCArray);
+        VTABLE_set_integer_native(INTERP, array, 4);
         VTABLE_set_integer_keyed_int(INTERP, array, 0, r_inums[0] );
         VTABLE_set_integer_keyed_int(INTERP, array, 1, r_inums[1] );
         VTABLE_set_integer_keyed_int(INTERP, array, 2, r_inums[2] );
         VTABLE_set_integer_keyed_int(INTERP, array, 3, r_inums[3] );
-		return array;
-	}
+        return array;
+    }
 
 
     METHOD void copy_to_temp (INTVAL inum, INTVAL temp_inum) {
-		memcpy( &pop[pop_size + temp_inum], &pop[inum], sizeof(t_lgp_indi) );
-	}
+        memcpy( &pop[pop_size + temp_inum], &pop[inum], sizeof(t_lgp_indi) );
+    }
 
 
     METHOD void rewrite_by_temp (INTVAL inum, INTVAL temp_inum) {
-		memcpy( &pop[inum], &pop[pop_size + temp_inum], sizeof(t_lgp_indi) );
-	}
+        memcpy( &pop[inum], &pop[pop_size + temp_inum], sizeof(t_lgp_indi) );
+    }
 
     METHOD void mutate_temp (INTVAL temp_inum) {
-		// [operation code] [operands]*
-		opcode_t *ipc_ti;
-		ipc_ti = pop[pop_size + temp_inum].code;
-	}
+        // [operation code] [operands]*
+        opcode_t *ipc_ti;
+        ipc_ti = pop[pop_size + temp_inum].code;
+    }
 
 
     METHOD void mutate_temp_naive (INTVAL temp_inum) {
-		#define DEBUG 0
+        #define DEBUG 0
 
-		if ( pop[pop_size + temp_inum].len <= 1 ) {
-			return;
-		}
+        if ( pop[pop_size + temp_inum].len <= 1 ) {
+            return;
+        }
 
-		// random position inside indi code
-		size_t rand_position;
-		rand_position = rand() % (pop[pop_size + temp_inum].len - 1); // last instruction is 'ret'
-		// rand_position = 0; // debug
-		// rand_position = pop[pop_size + temp_inum].len - 2; // debug
+        // random position inside indi code
+        size_t rand_position;
+        rand_position = rand() % (pop[pop_size + temp_inum].len - 1); // last instruction is 'ret'
+        // rand_position = 0; // debug
+        // rand_position = pop[pop_size + temp_inum].len - 2; // debug
 
-		// [operation code] [operands]*
-		opcode_t *ipc_s;
-		ipc_s = pop[pop_size + temp_inum].code;
-		// Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[pop_size + temp_inum].len) );
+        // [operation code] [operands]*
+        opcode_t *ipc_s;
+        ipc_s = pop[pop_size + temp_inum].code;
+        // Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[pop_size + temp_inum].len) );
 
-		opcode_t *pc, *pc_end;
-		op_info_t* info;
-		int i, j, last_op_count, rand_i;
+        opcode_t *pc, *pc_end;
+        op_info_t* info;
+        int i, j, last_op_count, rand_i;
 
-		pc = ipc_s;
-		pc_end = &*(ipc_s + rand_position);
-		#if DEBUG
-			//PIO_printf(INTERP, "----- ----- ----- ----- -----\n" );
-			PIO_printf(INTERP, "rand pos %i (len %i)\n", rand_position, pop[pop_size + temp_inum].len );
-		#endif
-		info = &INTERP->op_info_table[*pc];
+        pc = ipc_s;
+        pc_end = &*(ipc_s + rand_position);
+        #if DEBUG
+            //PIO_printf(INTERP, "----- ----- ----- ----- -----\n" );
+            PIO_printf(INTERP, "rand pos %i (len %i)\n", rand_position, pop[pop_size + temp_inum].len );
+        #endif
+        info = &INTERP->op_info_table[*pc];
 
-		int r_ins_num, op_num;
-		r_ins_num = 1;
-		op_num = 0;
-		op_num += info->op_count;
+        int r_ins_num, op_num;
+        r_ins_num = 1;
+        op_num = 0;
+        op_num += info->op_count;
 
-		// find begin of instructio
-		while ( pc + info->op_count <= pc_end ) {
-			#if DEBUG
-				//PIO_printf(INTERP, "%3i +%1i %3i %p %4ld %s\n", r_ins_num, info->op_count, op_num, pc, *pc, info->full_name );
-			#endif
-			pc += info->op_count;
-			info = &INTERP->op_info_table[*pc];
-			r_ins_num++;
-			op_num += info->op_count;
-		};
-		//PIO_printf(INTERP, "\n" );
+        // find begin of instructio
+        while ( pc + info->op_count <= pc_end ) {
+            #if DEBUG
+                //PIO_printf(INTERP, "%3i +%1i %3i %p %4ld %s\n", r_ins_num, info->op_count, op_num, pc, *pc, info->full_name );
+            #endif
+            pc += info->op_count;
+            info = &INTERP->op_info_table[*pc];
+            r_ins_num++;
+            op_num += info->op_count;
+        };
+        //PIO_printf(INTERP, "\n" );
 
-		INTVAL r_op_num = 0;
-		rand_i = rand() % 100;
-		#if DEBUG
-			rand_i = 76; // debug only selected operation
-		#endif
-		// mutate operands
-		// 60%
-		if ( rand_i < 60 ) {
-			#if DEBUG
-				PIO_printf(INTERP, "mutate operands\n" );
-				Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
-			#endif
-			INTVAL r_i;
-			i = 0;
-			if ( (info->op_count) > 1 ) {
-				// get random op num
-				// gets one of [1,2] if op_count = 3
-				r_op_num = rand() % ( info->op_count - 1 ) + 1;
-				//PIO_printf(INTERP, "r_op_num: %i, op_count: %i\n", r_op_num, info->op_count );
-				switch (info->types[r_op_num]) {
-					case PARROT_ARG_I:
-						r_i = rand() % (lgp_out_reg_count + lgp_in_reg_count);
-						if ( r_i < lgp_out_reg_count ) {
-							r_i = lgp_out_regs[ r_i ];
-						} else {
-							r_i -= lgp_out_reg_count;
-							r_i = lgp_in_regs[ r_i ];
-						}
-						//PIO_printf(INTERP, "r_i %i z %i: %i\n", j+1, (info->op_count-1), r_i );
-						*(pc + r_op_num) = r_i;
-						break;
-				}
-			}
+        INTVAL r_op_num = 0;
+        rand_i = rand() % 100;
+        #if DEBUG
+            rand_i = 76; // debug only selected operation
+        #endif
+        // mutate operands
+        // 60%
+        if ( rand_i < 60 ) {
+            #if DEBUG
+                PIO_printf(INTERP, "mutate operands\n" );
+                Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
+            #endif
+            INTVAL r_i;
+            i = 0;
+            if ( (info->op_count) > 1 ) {
+                // get random op num
+                // gets one of [1,2] if op_count = 3
+                r_op_num = rand() % ( info->op_count - 1 ) + 1;
+                //PIO_printf(INTERP, "r_op_num: %i, op_count: %i\n", r_op_num, info->op_count );
+                switch (info->types[r_op_num]) {
+                    case PARROT_ARG_I:
+                        r_i = rand() % (lgp_out_reg_count + lgp_in_reg_count);
+                        if ( r_i < lgp_out_reg_count ) {
+                            r_i = lgp_out_regs[ r_i ];
+                        } else {
+                            r_i -= lgp_out_reg_count;
+                            r_i = lgp_in_regs[ r_i ];
+                        }
+                        //PIO_printf(INTERP, "r_i %i z %i: %i\n", j+1, (info->op_count-1), r_i );
+                        *(pc + r_op_num) = r_i;
+                        break;
+                }
+            }
 
-			#if DEBUG
-				PIO_printf(INTERP, "rand %i, %i\n", r_ins_num, r_op_num );
-				Parrot_dump_from_to(INTERP, pc, pc + info->op_count);
-				PIO_printf(INTERP, "\n" );
-				//PIO_printf(INTERP, "----- ----- ----- ----- -----\n" );
-			#endif
+            #if DEBUG
+                PIO_printf(INTERP, "rand %i, %i\n", r_ins_num, r_op_num );
+                Parrot_dump_from_to(INTERP, pc, pc + info->op_count);
+                PIO_printf(INTERP, "\n" );
+                //PIO_printf(INTERP, "----- ----- ----- ----- -----\n" );
+            #endif
 
-		// reduction operator - remove instruction
-		// 60-75 ... 15%
-		} else if ( rand_i < 75 ) {
-			#if DEBUG
-				PIO_printf(INTERP, "reduction operator\n" );
-				Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
-			#endif
+        // reduction operator - remove instruction
+        // 60-75 ... 15%
+        } else if ( rand_i < 75 ) {
+            #if DEBUG
+                PIO_printf(INTERP, "reduction operator\n" );
+                Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
+            #endif
 
-			/*
-			int len;
-			len = &*(ipc_s + pop[pop_size + temp_inum].len) - (pc + info->op_count);
-			PIO_printf(INTERP, "len to copy: %p, %p, %i \n", pc+info->op_count, pc, len );
-			memcpy(pc, &*(pc+info->op_count), len );
-			pop[pop_size + temp_inum].len -= info->op_count;
-			*/
+            /*
+            int len;
+            len = &*(ipc_s + pop[pop_size + temp_inum].len) - (pc + info->op_count);
+            PIO_printf(INTERP, "len to copy: %p, %p, %i \n", pc+info->op_count, pc, len );
+            memcpy(pc, &*(pc+info->op_count), len );
+            pop[pop_size + temp_inum].len -= info->op_count;
+            */
 
-			i = info->op_count;
-			pc_end = &*(ipc_s + pop[pop_size + temp_inum].len) - i;
-			while ( pc < pc_end ) {
-				*pc = *(pc + i);
-				pc++;
-			}
-			pop[pop_size + temp_inum].len -= i;
+            i = info->op_count;
+            pc_end = &*(ipc_s + pop[pop_size + temp_inum].len) - i;
+            while ( pc < pc_end ) {
+                *pc = *(pc + i);
+                pc++;
+            }
+            pop[pop_size + temp_inum].len -= i;
 
-		// insertion operator
-		// 75-80 ... 5%
-		} else if ( rand_i < 80 ) {
-			#if DEBUG
-				PIO_printf(INTERP, "insertion operator\n" );
-				Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
-			#endif
-			// already has max length
-			if ( pop[pop_size + temp_inum].len >= INDI_MAX_LEN ) {
-				#if DEBUG
-					PIO_printf(INTERP, "indi is already too long\n" );
-				#endif
-				return;
-			}
+        // insertion operator
+        // 75-80 ... 5%
+        } else if ( rand_i < 80 ) {
+            #if DEBUG
+                PIO_printf(INTERP, "insertion operator\n" );
+                Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
+            #endif
+            // already has max length
+            if ( pop[pop_size + temp_inum].len >= INDI_MAX_LEN ) {
+                #if DEBUG
+                    PIO_printf(INTERP, "indi is already too long\n" );
+                #endif
+                return;
+            }
 
-			op_info_t* r_info;
-			opcode_t *pc_begin;
+            op_info_t* r_info;
+            opcode_t *pc_begin;
 
-			i = info->op_count;
-			// already has max length
-			if ( pop[pop_size + temp_inum].len + i > INDI_MAX_LEN ) {
-				#if DEBUG
-					PIO_printf(INTERP, "indi is too long for this insertion\n" );
-				#endif
-				return;
-			}
+            i = info->op_count;
+            // already has max length
+            if ( pop[pop_size + temp_inum].len + i > INDI_MAX_LEN ) {
+                #if DEBUG
+                    PIO_printf(INTERP, "indi is too long for this insertion\n" );
+                #endif
+                return;
+            }
 
-			pc_begin = pc + i - 1;
-			pc_end = &*(ipc_s + pop[pop_size + temp_inum].len) + i - 1;
-			pc = pc_end;
+            pc_begin = pc + i - 1;
+            pc_end = &*(ipc_s + pop[pop_size + temp_inum].len) + i - 1;
+            pc = pc_end;
 
-			#if DEBUG
-				PIO_printf(INTERP, "%p %p %p %i %i %i\n", pc_begin, (pc_end-i), pc_end, *pc_begin, *(pc_end-i), *pc_end );
-			#endif
-			while ( pc > pc_begin ) {
-				#if DEBUG
-					PIO_printf(INTERP, "%p %i -> %p %i\n", (pc-i), *(pc-i), pc, *pc );
-				#endif
-				*pc = *(pc - i);
-				pc--;
-			}
-			pop[pop_size + temp_inum].len += i;
+            #if DEBUG
+                PIO_printf(INTERP, "%p %p %p %i %i %i\n", pc_begin, (pc_end-i), pc_end, *pc_begin, *(pc_end-i), *pc_end );
+            #endif
+            while ( pc > pc_begin ) {
+                #if DEBUG
+                    PIO_printf(INTERP, "%p %i -> %p %i\n", (pc-i), *(pc-i), pc, *pc );
+                #endif
+                *pc = *(pc - i);
+                pc--;
+            }
+            pop[pop_size + temp_inum].len += i;
 
 
-		// mutate instruction num to instruction of same length
-		// 20%
-		} else {
-			#if DEBUG
-				PIO_printf(INTERP, "mutate instruction num\n" );
-				Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
-			#endif
-			op_info_t* r_info;
-			INTVAL op_num;
-			// find same length or shorter instruction
-			do {
-				// random instruction number
-				r_op_num = lgp_ops[ rand() % lgp_op_count ];
-	  			r_info = &INTERP->op_info_table[r_op_num];
-				//PIO_printf(INTERP, "%i (%i), ", r_op, info->op_count-1 );
-			} while ( r_info->op_count > info->op_count );
-			#if DEBUG
-				PIO_printf(INTERP, "ins %i -> %i, op_count %i -> %i\n", *pc, r_op_num, info->op_count, r_info->op_count );
-			#endif
-			// random instruction
-			*pc = r_op_num;
-			for ( i=r_info->op_count; i<info->op_count; i++ ) {
-				//PIO_printf(INTERP, "%i\n", i );
-				*(pc + i) = 1; // noop
-			}
+        // mutate instruction num to instruction of same length
+        // 20%
+        } else {
+            #if DEBUG
+                PIO_printf(INTERP, "mutate instruction num\n" );
+                Parrot_dump_from_to(INTERP, pc, pc+info->op_count);
+            #endif
+            op_info_t* r_info;
+            INTVAL op_num;
+            // find same length or shorter instruction
+            do {
+                // random instruction number
+                r_op_num = lgp_ops[ rand() % lgp_op_count ];
+                r_info = &INTERP->op_info_table[r_op_num];
+                //PIO_printf(INTERP, "%i (%i), ", r_op, info->op_count-1 );
+            } while ( r_info->op_count > info->op_count );
+            #if DEBUG
+                PIO_printf(INTERP, "ins %i -> %i, op_count %i -> %i\n", *pc, r_op_num, info->op_count, r_info->op_count );
+            #endif
+            // random instruction
+            *pc = r_op_num;
+            for ( i=r_info->op_count; i<info->op_count; i++ ) {
+                //PIO_printf(INTERP, "%i\n", i );
+                *(pc + i) = 1; // noop
+            }
 
-			#if DEBUG
-				PIO_printf(INTERP, "rand %i, %i\n", r_ins_num, r_op_num );
-				Parrot_dump_from_to(INTERP, pc, pc + info->op_count);
-				PIO_printf(INTERP, "\n" );
-				//PIO_printf(INTERP, "----- ----- ----- ----- -----\n" );
-			#endif
-		}
-	}
+            #if DEBUG
+                PIO_printf(INTERP, "rand %i, %i\n", r_ins_num, r_op_num );
+                Parrot_dump_from_to(INTERP, pc, pc + info->op_count);
+                PIO_printf(INTERP, "\n" );
+                //PIO_printf(INTERP, "----- ----- ----- ----- -----\n" );
+            #endif
+        }
+    }
 
     METHOD void load_temp_indi (INTVAL temp_inum) {
-		opcode_t *ipc_src;
-		ipc_src = pop[pop_size + temp_inum].code;
-		// PIO_eprintf(INTERP, "Will copy %i bytes, from %p to %p\n", (INDI_MAX_LEN*sizeof(opcode_t)), ipc_src, ipc_start );
-		memcpy(ipc_start, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
-	}
+        opcode_t *ipc_src;
+        ipc_src = pop[pop_size + temp_inum].code;
+        // PIO_eprintf(INTERP, "Will copy %i bytes, from %p to %p\n", (INDI_MAX_LEN*sizeof(opcode_t)), ipc_src, ipc_start );
+        memcpy(ipc_start, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
+    }
 
 
     METHOD void es_mdump () {
-		// eval space memory dump
-		PIO_printf(INTERP, "eval code start: %p\n", epc_start );
-		PIO_printf(INTERP, "indi core start: %p, indi relative start: %i\n", ipc_start, (INTVAL)(ipc_start-epc_start) );
-		PIO_printf(INTERP, "indi core end  : %p, indi relative end  : %i, indi len: %i\n",
-			ipc_end,
-			(INTVAL)(ipc_end-epc_start),
-			(INTVAL)(ipc_end-ipc_start)
-		);
-		PIO_printf(INTERP, "eval code end  : %p, eval relative end  : %i\n", epc_end, (INTVAL)(epc_end-epc_start) );
-	}
+        // eval space memory dump
+        PIO_printf(INTERP, "eval code start: %p\n", epc_start );
+        PIO_printf(INTERP, "indi core start: %p, indi relative start: %i\n", ipc_start, (INTVAL)(ipc_start-epc_start) );
+        PIO_printf(INTERP, "indi core end  : %p, indi relative end  : %i, indi len: %i\n",
+            ipc_end,
+            (INTVAL)(ipc_end-epc_start),
+            (INTVAL)(ipc_end-ipc_start)
+        );
+        PIO_printf(INTERP, "eval code end  : %p, eval relative end  : %i\n", epc_end, (INTVAL)(epc_end-epc_start) );
+    }
 
 
     METHOD void es_cdump () {
-		// eval space code dump
-		Parrot_dump_from_to(INTERP, epc_start, epc_end);
+        // eval space code dump
+        Parrot_dump_from_to(INTERP, epc_start, epc_end);
     }
 
 
     METHOD void ic_cdump () {
-		// eval space individual core dump
-		Parrot_dump_from_to(INTERP, ipc_start, ipc_end);
+        // eval space individual core dump
+        Parrot_dump_from_to(INTERP, ipc_start, ipc_end);
     }
 
 
     METHOD INTVAL max_pop_size () {
-		return (INTVAL) MAX_POP_SIZE;
-	}
+        return (INTVAL) MAX_POP_SIZE;
+    }
 
-	METHOD INTVAL indi_max_len () {
-		return (INTVAL) INDI_MAX_LEN;
-	}
+    METHOD INTVAL indi_max_len () {
+        return (INTVAL) INDI_MAX_LEN;
+    }
 
     METHOD INTVAL pop_size () {
-		return pop_size;
-	}
+        return pop_size;
+    }
 
     METHOD INTVAL ops_num () {
-		return lgp_op_count;
-	}
+        return lgp_op_count;
+    }
 
 
-	METHOD PMC* ops () {
-		PMC *array;
-		array = pmc_new(INTERP, enum_class_FixedPMCArray);
-		VTABLE_set_integer_native(INTERP, array, lgp_op_count );
-		int i;
-		for ( i = 0; i < lgp_op_count; i++) {
+    METHOD PMC* ops () {
+        PMC *array;
+        array = pmc_new(INTERP, enum_class_FixedPMCArray);
+        VTABLE_set_integer_native(INTERP, array, lgp_op_count );
+        int i;
+        for ( i = 0; i < lgp_op_count; i++) {
             VTABLE_set_integer_keyed_int(INTERP, array, i, (INTVAL)lgp_ops[i] );
-		}
-		return array;
-	}
+        }
+        return array;
+    }
 
 
     METHOD STRING* test () {
-		char cstr[20];
-		char *str = cstr;
+        char cstr[20];
+        char *str = cstr;
 
         struct Parrot_sub * const sub = PMC_sub(SELF);
         opcode_t *pc;
         pc = ipc_start;
 
-		op_info_t* info;
-  		info = &INTERP->op_info_table[*pc];
-    	strcpy(str, info->full_name );
+        op_info_t* info;
+        info = &INTERP->op_info_table[*pc];
+        strcpy(str, info->full_name );
 
-		STRING *sstr;
-		sstr = string_from_cstring(INTERP, str, strlen(str));
-		mem_sys_free(str);
-		return sstr;
+        STRING *sstr;
+        sstr = string_from_cstring(INTERP, str, strlen(str));
+        mem_sys_free(str);
+        return sstr;
     }
 }

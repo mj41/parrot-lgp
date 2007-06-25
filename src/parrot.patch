@@ -1,6 +1,6 @@
 Index: config/gen/makefiles/dynpmc.in
 ===================================================================
---- config/gen/makefiles/dynpmc.in	(revision 17479)
+--- config/gen/makefiles/dynpmc.in	(revision 19313)
 +++ config/gen/makefiles/dynpmc.in	(working copy)
 @@ -13,6 +13,7 @@
  # There is no config probe for libquantum yet, so add 'quantumreg' manually if desired
@@ -12,13 +12,15 @@ Index: config/gen/makefiles/dynpmc.in
    rotest \
 Index: src/call_list.txt
 ===================================================================
---- src/call_list.txt	(revision 17479)
+--- src/call_list.txt	(revision 19313)
 +++ src/call_list.txt	(working copy)
-@@ -425,3 +425,7 @@
- 
+@@ -430,6 +430,6 @@
  # win32
  l lttl
-+
+ 
+-i pip
+-i piS
+-S i
 +# dynpmc/lgp.pmc
 +v JOII
 +I JOII

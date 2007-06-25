@@ -33,8 +33,7 @@ See
  lgp-devel> svn update parrot-lgp
  lgp-devel> svn update parrot -r 19319
  lgp-devel> cp ./parrot-lgp/src/lgp.pmc ./parrot/src/dynpmc/
- lgp-devel> cp ./parrot-lgp/src/lgp_conf.h ./parrot/src/dynpmc/
-
+ 
 * apply ./parrot-lgp/src/parrot.patch on ./parrot
 ** you can use TortoiseSVN on Windows - right mouse button on "parrot", then "apply patch" and right mouse button and "patch all"
 
@@ -45,4 +44,5 @@ See
 
 * run
   lgp-devel> perl parrot-lgp/t/lgp.t
+  lgp-devel> parrot/parrot parrot-lgp/t/pi.pir
   lgp-devel> parrot/parrot parrot-lgp/src/lgp.pir

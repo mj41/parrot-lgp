@@ -1,9 +1,9 @@
 Index: config/gen/makefiles/dynpmc.in
 ===================================================================
---- config/gen/makefiles/dynpmc.in	(revision 19313)
+--- config/gen/makefiles/dynpmc.in	(revision 21301)
 +++ config/gen/makefiles/dynpmc.in	(working copy)
-@@ -13,6 +13,7 @@
- # There is no config probe for libquantum yet, so add 'quantumreg' manually if desired
+@@ -11,6 +11,7 @@
+ # gdbmhash is only built when 'libgdbm.so' is available
  #
  PMCS = \
 +  lgp \
@@ -12,9 +12,9 @@ Index: config/gen/makefiles/dynpmc.in
    rotest \
 Index: src/call_list.txt
 ===================================================================
---- src/call_list.txt	(revision 19313)
+--- src/call_list.txt	(revision 21301)
 +++ src/call_list.txt	(working copy)
-@@ -430,6 +430,6 @@
+@@ -432,6 +432,6 @@
  # win32
  l lttl
  

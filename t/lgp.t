@@ -113,7 +113,7 @@ EOC_LGP
     .local pmc eval_code
     push_eh COMPILE_ERR
     eval_code = pasm_compiler(pasm_eval_space)
-    clear_eh
+    pop_eh
 
     .local pmc eval_space
     eval_space = get_global ['LGP'], 'eval_space'
@@ -181,7 +181,7 @@ ADD_NOOP:
     .local pmc eval_code
     push_eh COMPILE_ERR
     eval_code = pasm_compiler(pasm_eval_space)
-    clear_eh
+    pop_eh
 
     .local pmc eval_space
     eval_space = get_global ['LGP'], 'eval_space'

@@ -94,7 +94,7 @@ PARAMS_DONE:
 #    print "fintess: "
 #    print I31
 #    print "\n\n"
-    clear_eh
+    pop_eh
     set_returns "(0)", I31
     returncc
 
@@ -143,7 +143,7 @@ ADD_NOOP:
     .local pmc eval_code
     push_eh COMPILE_ERR
     eval_code = pasm_compiler(pasm_eval_space)
-    clear_eh
+    pop_eh
 
     .local pmc eval_space
     eval_space = get_global ['LGP'], 'eval_space'

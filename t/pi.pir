@@ -106,7 +106,7 @@ EOC_PI
     .local pmc eval_code
     push_eh COMPILE_ERR
     eval_code = pasm_compiler(pasm_eval_space)
-    clear_eh
+    pop_eh
 
     .local pmc eval_space
     eval_space = get_global ['LGP'], 'eval_space'
@@ -121,7 +121,7 @@ EOC_PI
 
     push_eh COMPILE_ERR
     eval_code = pasm_compiler(pir_code_pi)
-    clear_eh
+    pop_eh
     .local pmc prep_indi
 
     inc tn

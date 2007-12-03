@@ -1,12 +1,13 @@
 #include "parrot/parrot.h"
 
-#define MAX_POP_SIZE 250000
-#define INDI_MAX_LEN 50
-#define FIGHT_NUM 2
+#define MAX_POP_SIZE 250000 // maximal population size
+#define INDI_MAX_LEN 50 // maximal length of individual
+#define FIGHT_NUM 2 // number of fights in each run
 
 // typedef INTVAL fitness_t;
 // fitness_t is not recognized in method signature
 
+// individual structure - fixed size array
 typedef struct lgp_indi {
     INTVAL       	fitness;
     opcode_t		code[INDI_MAX_LEN];
@@ -17,17 +18,22 @@ INTVAL pop_size = NULL;
 typedef t_lgp_indi t_pop[MAX_POP_SIZE + FIGHT_NUM];
 t_pop pop;
 
-INTVAL lgp_in_reg_count  = 3;
+INTVAL lgp_in_reg_count  = 3; // number of input registers
+// input register's numbers
 INTVAL lgp_in_regs[] = {
 	0, 1, 2
 };
 
-INTVAL lgp_out_reg_count  = 1;
+INTVAL lgp_out_reg_count  = 1; // number of output registers
+// output register's numbers
 INTVAL lgp_out_regs[] = {
 	3
 };
 
-INTVAL lgp_op_count  = 17;
+INTVAL lgp_op_count  = 17; // number of operators
+/*
+	List of allowed instructions. Used to initialize code, and for genetic operations.
+*/
 opcode_t lgp_ops[] = {
 	// 113, // 0 ... band_i_i: i(io), i(i)
 	// 115, // 1 ... band_i_i_i: i(o), i(i), i(i)
@@ -85,13 +91,17 @@ opcode_t lgp_ops[] = {
 // 34 .. returncc
 
 
-int init_done = 0;
-opcode_t *epc_start;
+int init_done = 0; // initialization status
+opcode_t *epc_start; // pointer to first instruction of eval space
 opcode_t *epc_end;
+/*
+	Pointer to first instruction of individual code (the end of eval space)
+*/
 opcode_t *ipc_start;
 opcode_t *ipc_end;
 
 
+// part of quicksort function below
 static int
 Parrot_quicksort_fitness_partition(INTVAL a[], int p, int r) {
     int x = a[r];
@@ -111,7 +121,7 @@ Parrot_quicksort_fitness_partition(INTVAL a[], int p, int r) {
     return (j + 1);
 }
 
-
+// sort function, uset to sort get fight results
 static void
 Parrot_quicksort_fitness (INTVAL a[], int p, int r) {
     if (p < r) {
@@ -122,6 +132,10 @@ Parrot_quicksort_fitness (INTVAL a[], int p, int r) {
 }
 
 
+/*
+	Dump function whitch prints opcodes. Pc is pointer to begin of instruction
+	- can't point to the operator. Copied from Parrot source.
+*/
 static void
 Parrot_dump_from_to (Interp* interp, opcode_t *pc, opcode_t *pc_end) {
 
@@ -185,8 +199,13 @@ Parrot_dump_from_to (Interp* interp, opcode_t *pc, opcode_t *pc_end) {
 }
 
 
+// LGP class
 pmclass LGP need_ext dynpmc {
 
+    /*
+    	Validate and prepare eval space.
+    	For required eval space PIR structure see tests (t/*.pir).
+    */
     METHOD void prepare_eval_space (PMC* pmcsub) {
         struct Parrot_sub *sub = PMC_sub(pmcsub);
         opcode_t *pc;
@@ -229,7 +248,10 @@ pmclass LGP need_ext dynpmc {
     }
 
 
-    /* set eval space individual core */
+    /*
+    	Copy pmcsub to individual part of eval space. Pmcsub can be create directly from PIR code.
+    	Useful for testing or human predefined individuals.
+    */
     METHOD void set_ic (PMC* pmcsub) {
         struct Parrot_sub *sub = PMC_sub(pmcsub);
 
@@ -242,7 +264,7 @@ pmclass LGP need_ext dynpmc {
         memcpy(ipc_start, sub_start, (sub_end - sub_start)*sizeof(opcode_t) );
     }
 
-
+	/* set population size */
     METHOD void set_pop_size (INTVAL t_pop_size) {
         if ( t_pop_size > MAX_POP_SIZE ) {
             PIO_eprintf(INTERP, "pop_size <= MAX_POP_SIZE (%i <= %i) failed\n", t_pop_size, MAX_POP_SIZE);
@@ -256,11 +278,9 @@ pmclass LGP need_ext dynpmc {
         pop_size = t_pop_size;
     }
 
-
+	/* validate configuration */
     METHOD void validate_conf () {
-        // todo - move a part of code from invoke method here
-
-        // length of eval space individual core have to be more longer or equal as INDI_MAX_LEN
+        // length of eval space individual core has to be longer or equal to INDI_MAX_LEN
         if ( ipc_end - ipc_start != INDI_MAX_LEN ) {
             if ( ipc_end - ipc_start > INDI_MAX_LEN ) {
                 // PIO_eprintf(INTERP, "eval_space() len > INDI_MAX_LEN (%i > %i)\n", ipc_end - ipc_start, INDI_MAX_LEN);
@@ -276,7 +296,7 @@ pmclass LGP need_ext dynpmc {
         }
     }
 
-
+	/* initialize population */
     METHOD void initialize (INTVAL inum) {
         // randomize
         srand((unsigned) time(NULL) );
@@ -335,7 +355,7 @@ pmclass LGP need_ext dynpmc {
         }
     }
 
-
+	/* print individual code with number inum */
     METHOD void indi_code (INTVAL inum) {
         // pop[num] individual code dump
         opcode_t *ipc_s;
@@ -343,6 +363,7 @@ pmclass LGP need_ext dynpmc {
         Parrot_dump_from_to(INTERP, ipc_s, &*(ipc_s + pop[inum].len) );
     }
 
+	/* print temporary individual code with number temp_inum */
     METHOD void temp_indi_code (INTVAL temp_inum) {
         // pop[pop_size + temp_inum] individual code dump
         opcode_t *ipc_s;
@@ -351,39 +372,46 @@ pmclass LGP need_ext dynpmc {
     }
 
 
+	/* return length of individual inum */
     METHOD INTVAL indi_len (INTVAL inum) {
         // pop[num] individual len
         return pop[inum].len;
     }
 
+	/* return length of temporary individual temp_inum */
     METHOD INTVAL temp_indi_len (INTVAL temp_inum) {
         // pop[pop_size + temp_inum] individual len
         return pop[pop_size + temp_inum].len;
     }
 
 
+	/* return fitness of individual inum */
     METHOD INTVAL indi_fitness (INTVAL inum) {
         // pop[num] individual fitness
         return pop[inum].fitness;
     }
 
+	/* return fitness of temporary individual temp_inum to fitness */
     METHOD INTVAL temp_indi_fitness (INTVAL temp_inum) {
         // pop[pop_size + temp_inum] individual fitness
         return pop[pop_size + temp_inum].fitness;
     }
 
 
+	/* set fitness of individual inum */
     METHOD void set_indi_fitness (INTVAL inum, INTVAL fitness) {
         // set pop[num] individual fitness
         pop[inum].fitness = fitness;
     }
 
+	/* set fitness of temporary individual temp_inum to fitness */
     METHOD void set_temp_indi_fitness (INTVAL temp_inum, INTVAL fitness) {
         // set pop[pop_size + temp_inum] individual fitness
         pop[pop_size + temp_inum].fitness = fitness;
     }
 
 
+    /* copy body of individual inum to eval_space */
     METHOD void load_indi (INTVAL inum) {
         opcode_t *ipc_src;
         ipc_src = pop[inum].code;
@@ -391,6 +419,11 @@ pmclass LGP need_ext dynpmc {
         memcpy(ipc_start, ipc_src, (INDI_MAX_LEN*sizeof(opcode_t)) );
     }
 
+	/*
+	 	Return FixedPMCArray of distinct random numbers of individuals sorted by fitness.
+	 	Used for fight.
+	 	TODO: Useful only for FIGHT_NUM=2.
+	*/
     METHOD PMC* get_parents () {
         INTVAL r_inums[4];
 
@@ -422,16 +455,27 @@ pmclass LGP need_ext dynpmc {
         return array;
     }
 
-
+	/*
+		Copy individual inum to temporary individual temp_inum.
+		Used before apply of genetic operators.
+	*/
     METHOD void copy_to_temp (INTVAL inum, INTVAL temp_inum) {
         memcpy( &pop[pop_size + temp_inum], &pop[inum], sizeof(t_lgp_indi) );
     }
 
 
+	/*
+		Rewrite individual inum by temporary individual temp_inum.
+		Used after fight to replace loosers.
+	*/
     METHOD void rewrite_by_temp (INTVAL inum, INTVAL temp_inum) {
         memcpy( &pop[inum], &pop[pop_size + temp_inum], sizeof(t_lgp_indi) );
     }
 
+
+	/*
+		TODO: Mutate individual temp_inum.
+	*/
     METHOD void mutate_temp (INTVAL temp_inum) {
         // [operation code] [operands]*
         opcode_t *ipc_ti;
@@ -439,6 +483,9 @@ pmclass LGP need_ext dynpmc {
     }
 
 
+	/*
+		Naive implementation of some types of mutate operator.
+	*/
     METHOD void mutate_temp_naive (INTVAL temp_inum) {
         #define DEBUG 0
 
@@ -638,6 +685,9 @@ pmclass LGP need_ext dynpmc {
     }
 
 
+	/*
+		Print dump of eval space.
+	*/
     METHOD void es_mdump () {
         // eval space memory dump
         PIO_printf(INTERP, "eval code start: %p\n", epc_start );
@@ -651,35 +701,44 @@ pmclass LGP need_ext dynpmc {
     }
 
 
+	/*
+		Print raw dump of eval space.
+	*/
     METHOD void es_cdump () {
         // eval space code dump
         Parrot_dump_from_to(INTERP, epc_start, epc_end);
     }
 
-
+	/*
+		Print raw dump of invididula part of eval space.
+	*/
     METHOD void ic_cdump () {
         // eval space individual core dump
         Parrot_dump_from_to(INTERP, ipc_start, ipc_end);
     }
 
 
+	/* Return maximum allowed population size. */
     METHOD INTVAL max_pop_size () {
         return (INTVAL) MAX_POP_SIZE;
     }
 
+	/* Return maximum allowed length of individual. */
     METHOD INTVAL indi_max_len () {
         return (INTVAL) INDI_MAX_LEN;
     }
 
+	/* Return actual population size. */
     METHOD INTVAL pop_size () {
         return pop_size;
     }
 
+	/* Return number of available instruction. */
     METHOD INTVAL ops_num () {
         return lgp_op_count;
     }
 
-
+	/* Return list of available instructions. */
     METHOD PMC* ops () {
         PMC *array;
         array = pmc_new(INTERP, enum_class_FixedPMCArray);
@@ -689,24 +748,5 @@ pmclass LGP need_ext dynpmc {
             VTABLE_set_integer_keyed_int(INTERP, array, i, (INTVAL)lgp_ops[i] );
         }
         return array;
-    }
-
-
-    METHOD STRING* test () {
-        char cstr[20];
-        char *str = cstr;
-
-        struct Parrot_sub * const sub = PMC_sub(SELF);
-        opcode_t *pc;
-        pc = ipc_start;
-
-        op_info_t* info;
-        info = &INTERP->op_info_table[*pc];
-        strcpy(str, info->full_name );
-
-        STRING *sstr;
-        sstr = string_from_cstring(INTERP, str, strlen(str));
-        mem_sys_free(str);
-        return sstr;
     }
 }

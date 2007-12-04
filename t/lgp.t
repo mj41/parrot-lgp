@@ -34,15 +34,15 @@ pir_output_is(<< 'CODE', << 'OUTPUT', "loadlib");
     $I0 = find_type "LGP"
     if $I0 == 0 goto FIND_TYPE_ERR
     print "find_type found LGP\n"
-    
+
     .local pmc engine
     engine = new $I0
-    
+
     $S0 = typeof engine
     print $S0
     print "\n"
     end
-    
+
 NOT_LOADED:
     print "lgp lib not loaded\n"
     end
@@ -64,15 +64,15 @@ pir_output_is(<< 'CODE', << 'OUTPUT', "loadlib (macro)");
     $I0 = find_type "LGP"
     if $I0 == 0 goto FIND_TYPE_ERR
     print "find_type found LGP\n"
-    
+
     .local pmc engine
     engine = new $I0
-    
+
     $S0 = typeof engine
     print $S0
     print "\n"
     end
-    
+
 FIND_TYPE_ERR:
     print "find type return 0"
     end
@@ -90,7 +90,7 @@ pir_output_is(<< 'CODE', << 'OUTPUT', "pasm compiler, namespace and prepare_eval
 
     $I0 = find_type "LGP"
     if $I0 == 0 goto FIND_TYPE_ERR
-    
+
     .local pmc engine
     new engine, $I0
 
@@ -131,10 +131,10 @@ EOC_LGP
 FIND_TYPE_ERR:
     print "find_type for LGP failed\n"
     end
-    
+
 COMPILE_ERR:
     print "compilation failed\n"
-    end   
+    end
 .end
 CODE
 namespace: 'parrot;LGP'
@@ -148,7 +148,7 @@ pir_output_is(<< 'CODE', << 'OUTPUT', "all for validate_conf");
 
     $I0 = find_type "LGP"
     if $I0 == 0 goto FIND_TYPE_ERR
-    
+
     .local pmc engine
     new engine, $I0
 
@@ -167,7 +167,7 @@ EOC_LGP
     .local int add_core_len
     add_core_len = engine.'indi_max_len'()
     add_core_len -= 2 # 'bsr' -2, 'ret' -1, + 1 for loop
-ADD_NOOP:    
+ADD_NOOP:
     pasm_eval_space = concat "    noop\n"
     add_core_len -= 1
     if add_core_len >= 0 goto ADD_NOOP
@@ -193,17 +193,17 @@ ADD_NOOP:
     print "population set\n"
 
     engine.validate_conf()
-    
+
     print "validation finished sucessful\n"
 
     end
 FIND_TYPE_ERR:
     print "find_type for LGP failed\n"
     end
-    
+
 COMPILE_ERR:
     print "compilation failed\n"
-    end   
+    end
 .end
 CODE
 eval_space sub prepared

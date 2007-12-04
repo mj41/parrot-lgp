@@ -1,4 +1,4 @@
-use Time::HiRes qw(time); 
+use Time::HiRes qw(time);
 use strict;
 
 my ( $t_start, $t_stop, $t_diff );
@@ -16,10 +16,10 @@ $cmd = "parrot\\parrot.exe parrot-lgp\\src\\lgp.pir $pop_size";
 print "cmd: '$cmd'\n";
 
 my $num = 50;
-for (1..$num) { 
+for (1..$num) {
     print "run number: $_\n";
-    $t_start = time(); 
-    system( $cmd ); 
+    $t_start = time();
+    system( $cmd );
     $t_stop = time();
     $t_diff = $t_stop - $t_start;
     $t_sum += $t_diff;

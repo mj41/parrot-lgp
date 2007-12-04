@@ -16,7 +16,7 @@ my ( $sp, $n_sp, $o_line, $d_line );
 my ( $prev );
 while ( my $line = <$fh> ) {
     chomp $line;
-    
+
     if ( ( $sp, $d_line ) = $line =~ /^(\s*)\#\@(.*?)\s*$/ ) {
         if ( $d_line !~ /^\s*$/ ) {
             print $sp;
@@ -53,7 +53,7 @@ while ( my $line = <$fh> ) {
     } else {
         print $line;
     }
-    
+
     print "\n";
 }
 close $fh;

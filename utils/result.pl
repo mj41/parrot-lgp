@@ -11,7 +11,7 @@ my $debug = 0;
 
 if ( $ARGV[0] && $ARGV[0] eq '--help' ) {
 print <<"EOHELP";
-Usage: 
+Usage:
   perl $0 [--save] FILE1 [FILE2, ...]
   perl $0 [--save] -d DIR_NAME
   perl $0 [--save]
@@ -41,7 +41,7 @@ if ( scalar(@ARGV) == 0 || $ARGV[0] eq '-d' ) {
        croak "Second param is not directory." unless -d $ARGV[1];
        $dir_name = $ARGV[1];
     }
-    
+
     if (not opendir(DIR, $dir_name)) {
         croak "Directory '$dir_name' not open for read.\n$!" ;
     }
@@ -62,7 +62,7 @@ if ( scalar(@ARGV) == 0 || $ARGV[0] eq '-d' ) {
         my $path = './' . $name;
         $files{$name} = $path;
     }
-} 
+}
 
 my $file_sep = '--- --- --- --- --- --- --- --- --- ---';
 my $more_than_one = 0;
@@ -76,7 +76,7 @@ foreach my $if_name ( sort keys %files ) {
         my $of_name = 'stat-' . $if_name;
         open( OUT, '>' . $of_name ) or croak $!;
     }
-    
+
     my $if_path = $files{$if_name};
     print "input file path: '$if_path'\n";
     print "\n";

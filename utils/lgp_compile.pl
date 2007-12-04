@@ -1,4 +1,4 @@
-use Time::HiRes qw(time); 
+use Time::HiRes qw(time);
 use strict;
 use Cwd;
 
@@ -10,7 +10,7 @@ sub sys {
 
     my $output;
     $temp_out_fn = '.out' unless $temp_out_fn;
-    
+
     open my $oldout, ">&STDOUT"     or die "Can't dup STDOUT: $!";
     open OLDERR,     ">&", \*STDERR or die "Can't dup STDERR: $!";
 
@@ -19,10 +19,10 @@ sub sys {
 
     select STDERR; $| = 1;      # make unbuffered
     select STDOUT; $| = 1;      # make unbuffered
-    
+
     select $oldout; $| = 1;
     select OLDERR; $| = 1;
-    
+
     my $status = system($cmd);
 
     close STDOUT;
@@ -48,7 +48,7 @@ sub sys {
 
 sub run_cmd {
     my ( $cmd, $print_ok_outut ) = @_;
-    
+
     print "runnig '$cmd'\n";
     my ($st, $out) = sys( $cmd, $wd . '/lgp-' . $cmd . '.out' );
     print "'${cmd}' return code = ${st}\n";
@@ -58,17 +58,17 @@ sub run_cmd {
         print "\n";
         return 0;
     }
-    
+
     if ( $out =~ /error/ms ) {
         print "'$cmd' return: $st, but error in output found\n";
         print $out;
         print "\n";
         return 0;
     }
-    
+
     print "$cmd [OK]\n";
     if ( $print_ok_outut ) {
-        print "\n";   
+        print "\n";
         print $out;
     }
     return 1;

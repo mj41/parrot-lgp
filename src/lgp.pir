@@ -1,17 +1,25 @@
+# comments with @ char after # are used to create debug code variant
+# see utils\todebug.pl and compare src\lgp.pir with src\lgp-debug.pir
+
+# load src/dynmpc/lgp.pmc
 .loadlib "lgp"
 
 .sub main :main
-    get_params "(0)", $P10
+    get_params "(0)", $P10 # get command line options pmc
 
+    # get LGP dynclass
     $I0 = find_type "LGP"
     if $I0 == 0 goto FIND_TYPE_ERR
-    
+
+    # create linear genetic programming engine PMC
     .local pmc engine
     new engine, $I0
 
+    # get maximum population size
     .local int max_pop_size
     max_pop_size = engine."max_pop_size"()
 
+    # validate option
     .local int pop_size
     $I10 = $P10
     eq $I10, 2, PS_PARAM_OK
@@ -24,7 +32,7 @@
     print "\n"
     goto PARAMS_DONE
 
-PS_PARAM_OK:    
+PS_PARAM_OK:
     pop_size = $P10[1]
     if pop_size <= max_pop_size goto OK_POP_SIZE
     print "Max population size is "
@@ -34,123 +42,135 @@ PS_PARAM_OK:
 OK_POP_SIZE:
 PARAMS_DONE:
 
+    # eval space code
+    # eval space contain space for individual of max_indi_len length
     .local string pasm_eval_space
 
+    # use PASM code
+    # direct map of PASM to opcodes is prefered
     pasm_eval_space = <<'EOC_LGP'
 
 .namespace [ "LGP" ]
 
 .pcc_sub eval_space:
-    # i1 + i2 + i3 + 5
-    # 3 2 1 - 11
-    # 3 3 1 - 12
-    # 3 3 3 - 14
-    # 9 5 3 - 22
+    # function to find: I0 + I1 + I2 + 5
+    # dataset:
+    #  [ [ 3, 2, 1 ], [ 11 ] ],   # I0 + I1 + I2 + 5 = 3 + 2 + 1 + 5 = 9
+    #  [ [ 3, 3, 1 ], [ 12 ] ]    # ...
+    #  [ [ 3, 3, 3 ], [ 14 ] ]    # ...
+    #  [ [ 9, 5, 3 ], [ 22 ] ]    # ...
+    #    ----------    ----
+    #         |         |
+    #       input      output
+    #    (I0,I1,I2)     (I3)
 
+    # exception, e.c. divide by zero
     push_eh EXCEPTION
 
-#    print "null fitness\n"
-    save 0
+    # first part of eval space contains fitness calculation
+    # individual fitness is SUM( (correct output - individual output)^2 ) - for each line of dataset
 
-    # set: 0
+    # dataset part 0
+    # set input register values to [ 3, 2, 1 ]
     set I0, 3
     set I1, 2
     set I2, 1
-    set I3, 0
-    bsr INDI_CORE
-    set I0, 11
-    bsr CALC_FITNESS
-    save I31
+    set I3, 0           # null output register
+    bsr INDI_CORE       # evaluate individual (run code), output is saved to I3
+    set I0, 11          # set correct output [ 11 ]
+    set I4, 0           # null fitness register
+    bsr ADD_PFITNESS    # add this evaluation partial fitness to fitness (I4)
+    save I4
 
-    # set: 1
+    # dataset part 1
     set I0, 3
     set I1, 3
     set I2, 1
     set I3, 0
     bsr INDI_CORE
     set I0, 12
-    bsr CALC_FITNESS
-    save I31
+    restore I4          # restore incomplete fitness value
+    bsr ADD_PFITNESS
+    save I4
 
-    # set: 2
+    # dataset part 2
     set I0, 3
     set I1, 3
     set I2, 3
     set I3, 0
     bsr INDI_CORE
     set I0, 14
-    bsr CALC_FITNESS
-    save I31
+    restore I4
+    bsr ADD_PFITNESS
+    save I4
 
-    # set: 3
+    # dataset part 3
     set I0, 9
     set I1, 5
     set I2, 3
     set I3, 0
     bsr INDI_CORE
     set I0, 22
-    bsr CALC_FITNESS
+    restore I4
+    bsr ADD_PFITNESS
 
-#    print "fintess: "
-#    print I31
-#    print "\n\n"
-    pop_eh
-    set_returns "(0)", I31
+    pop_eh                  # remove exception handler
+    set_returns "(0)", I4   # prepare to retufn final fitness
     returncc
 
-CALC_FITNESS:
-    restore I31
-#    print "restored I31 = "
-#    print I31
-#    print "\n"
-    # error, I3 is indi destination register
+# I4 += (correct_output-individual_output)^2
+ADD_PFITNESS:
     sub I0, I3, I0
-#    print "sub error: "
-#    print I0
-#    print "\n"
-    abs I0
     mul I0, I0, I0
-    add I31, I31, I0
-    abs I31
-#    print "new I31 = "
-#    print I31
-#    print "\n"
+    add I4, I4, I0
     ret
 
+# exceptions (e.c. individual with divide by zero) has the worst fitness
 EXCEPTION:
-    set_returns "(0)", 9999999 
+    set_returns "(0)", 9999999
     returncc
 
+# end of first part of eval space code
 EOC_LGP
 
+    # add individual part to eval space, to fill 'indi_max_len' (maximum individual code length)
     # adding indi core
     pasm_eval_space = concat "INDI_CORE:\n"
-    .local int add_core_len
-    add_core_len = engine.'indi_max_len'()
-    add_core_len -= 2 # 'bsr' -2, 'ret' -1, + 1 for loop
-ADD_NOOP:    
+    .local int noops_to_add
+    noops_to_add = engine.'indi_max_len'()
+    noops_to_add -= 3 # number of 'noop' instructions to add ('bsr' -2, 'ret' -1)
+ADD_NOOP:
     pasm_eval_space = concat "    noop\n"
-    add_core_len -= 1
-    if add_core_len >= 0 goto ADD_NOOP
-    # mandatory instructions for prepare_eval_space()
+    noops_to_add -= 1
+    if noops_to_add > 0 goto ADD_NOOP
+    # add this two instructions instead of 'noop' ones
+    # used by prepare_eval_space() to find first instruction of individual part inside eval space
     pasm_eval_space = concat "    bsr INDI_CORE\n"
     pasm_eval_space = concat "    ret\n"
 
 
+    # create PASM compiler
     .local pmc pasm_compiler
     pasm_compiler = compreg "PASM"
 
+    # compile eval space code
     .local pmc eval_code
     push_eh COMPILE_ERR
     eval_code = pasm_compiler(pasm_eval_space)
     pop_eh
 
+    # get eval space subpmc
     .local pmc eval_space
     eval_space = get_global ['LGP'], 'eval_space'
 
+    # eval space preparation
+    # find pointers to begins and ends of eval space and
+    #   individual part of evals space (inside lgp.pmc)
     engine.prepare_eval_space( eval_space )
 
+    # set population size
     engine.set_pop_size(pop_size)
+    # validate configuration
     engine.validate_conf()
 
 
@@ -222,7 +242,7 @@ F_NEXT_RUN:
 #@    print "running "
 #@    print inum
 #@    print "\n"
-    
+
     # 0 is worst, 3 is best (less fitness)
     parents = engine."get_parents"()
 #@    # debug print parents nums
@@ -260,7 +280,7 @@ F_NEXT_RUN:
 #@    print "temp source inum="
 #@    print i
 #@    print "\n"
-    
+
     engine."copy_to_temp"(i,0)
 #@    i = 0
 #@    bsr PRINT_TEMP_I
@@ -270,7 +290,7 @@ F_NEXT_RUN:
 
 #@    i = 0
 #@    bsr PRINT_TEMP_I
- 
+
 #@    print "--- --- --- --- --- --- ---\n"
 #@    print "load_temp_indi(0)\n"
     engine."load_temp_indi"(0)
@@ -392,7 +412,7 @@ F_RUN_B2:
     print "new "
     bsr PRINT_BEST
 F_SKIP_LT2:
-    
+
 #@    print "running "
 #@    print inum
 #@    print " [ok]\n\n"
@@ -418,7 +438,7 @@ F_SKIP_LT2:
 #@    if i != 0 goto SKIP_PRINT_INUM
 #@    bsr PRINT_BEST # debug
 #@    bsr PRINT_POPULATION # debug
-SKIP_PRINT_INUM:    
+SKIP_PRINT_INUM:
     if inum < max_inum goto F_NEXT_RUN
     print "\n"
 ret
@@ -450,7 +470,7 @@ PRINT_POPULATION:
     i = 0
     print "\n"
     print "printing full population:\n"
-    
+
 NEXT_IN_PRINT_POPULATION:
     bsr PRINT_I
     inc i
@@ -490,10 +510,10 @@ ret
 FIND_TYPE_ERR:
     print "find_type for LGP failed\n"
     end
-    
+
 COMPILE_ERR:
     print "compilation failed\n"
-    end   
+    end
 
 
 # end

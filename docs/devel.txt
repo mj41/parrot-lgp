@@ -7,7 +7,7 @@
 
 == Utils ==
 === utils\lgp-gen01.pl ===
- lgp-devel> perl parrot-lgp\utils\lgp-gen01.pl  
+ lgp-devel> perl parrot-lgp\utils\lgp-gen01.pl
 
 === utils\lgp_compile.pl ===
  lgp-devel> perl parrot-lgp\utils\lgp_compile.pl
@@ -15,3 +15,6 @@
  'mingw32-make' '0'
  'mingw32-make' return code = 0
  mingw32-make [OK]
+
+=== utils\todebug.pl ===
+ lgp-devel> perl parrot-lgp\utils\todebug.pl parrot-lgp\src\lgp.pir > parrot-lgp\src\lgp-debug.pir

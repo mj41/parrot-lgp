@@ -34,11 +34,11 @@ if ( $ARGV[0] && $ARGV[0] eq '--save' ) {
 }
 
 my %files = ();
+my $dir_name = './';
 # find all 'bench*.txt' in './' or '-d DIR'
 if ( scalar(@ARGV) == 0 || $ARGV[0] eq '-d' ) {
-    my $dir_name = './';
     if ( $ARGV[0] && $ARGV[0] eq '-d' ) {
-       croak "Second param is not directory." unless -d $ARGV[1];
+       croak "Second param is not directory.\n" unless -d $ARGV[1];
        $dir_name = $ARGV[1];
     }
 
@@ -73,7 +73,7 @@ local *OUT = \*STDOUT;
 foreach my $if_name ( sort keys %files ) {
 
     if ( $save_stats ) {
-        my $of_name = 'stat-' . $if_name;
+        my $of_name = $dir_name . 'stat-' . $if_name;
         open( OUT, '>' . $of_name ) or croak $!;
     }
 

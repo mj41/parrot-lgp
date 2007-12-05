@@ -51,8 +51,10 @@
 # I2 += (correct_output-individual_output)^2
 ADD_PFITNESS:
     sub I0, I1, I0          # correct_output-individual_output
+    abs I0                  # overflow "control"
     mul I0, I0, I0          # ^2
     add I2, I2, I0          # I2 +=
+    abs I2                  # overflow "control"
     ret
 
 # end of first part of eval space code
@@ -156,6 +158,8 @@ EOC_PI
     push_eh COMPILE_ERR
     eval_code = pasm_compiler(pir_code_pi)
     pop_eh
+
+    print "1..7\n"      # print test plan
 
     .local pmc prep_indi # prepared indi sub
 

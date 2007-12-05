@@ -122,7 +122,9 @@ PARAMS_DONE:
 ADD_PFITNESS:
     sub I0, I3, I0
     mul I0, I0, I0
+    abs I0              # overflow "control"
     add I4, I4, I0
+    abs I4              # overflow "control"
     ret
 
 # exceptions (e.c. individual with divide by zero) has the worst fitness

@@ -1,6 +1,6 @@
 Index: config/gen/makefiles/dynpmc.in
 ===================================================================
---- config/gen/makefiles/dynpmc.in	(revision 21301)
+--- config/gen/makefiles/dynpmc.in	(revision 26026)
 +++ config/gen/makefiles/dynpmc.in	(working copy)
 @@ -11,6 +11,7 @@
  # gdbmhash is only built when 'libgdbm.so' is available
@@ -12,15 +12,13 @@ Index: config/gen/makefiles/dynpmc.in
    rotest \
 Index: src/call_list.txt
 ===================================================================
---- src/call_list.txt	(revision 21301)
+--- src/call_list.txt	(revision 26026)
 +++ src/call_list.txt	(working copy)
-@@ -432,6 +432,6 @@
- # win32
- l lttl
- 
--i pip
--i piS
--S i
+@@ -459,3 +459,7 @@
+ i     pip
+ i     piS
+ S     i
++
 +# dynpmc/lgp.pmc
 +v JOII
 +I JOII

@@ -36,14 +36,12 @@
     set I0, 7               # set correct output -  [ 7 ]
     set I2, 0               # set initial fitness
     bsr ADD_PFITNESS        # add this evaluation partial fitness to fitness
-    save I2                 # save incomplete fitness value
 
     # dataset part 1
     set I0, 2               # input dataset part - [ 2 ]
     set I1, 0               # null output register
     bsr INDI_CORE           # run individual code, output is saved to I1
     set I0, 9               # set correct output -  [ 9 ]
-    restore I2              # restore incomplete fitness value
     bsr ADD_PFITNESS        # add this evaluation partial fitness to fitness
     set_returns "(0)", I2   # prepare to return final fitness
     returncc

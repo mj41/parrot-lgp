@@ -1,6 +1,18 @@
+Index: config/gen/call_list/misc.in
+===================================================================
+--- config/gen/call_list/misc.in	(revision 29697)
++++ config/gen/call_list/misc.in	(working copy)
+@@ -353,3 +353,7 @@
+ i    JOt
+ i    Jt
+ i    Ji
++
++# Used by parrot-lgp ( dynpmc/lgp.pmc, http://pr.perl6.cz/parrot-lgp )
++v    JOII
++I    JOII
 Index: config/gen/makefiles/dynpmc.in
 ===================================================================
---- config/gen/makefiles/dynpmc.in	(revision 26026)
+--- config/gen/makefiles/dynpmc.in	(revision 29697)
 +++ config/gen/makefiles/dynpmc.in	(working copy)
 @@ -11,6 +11,7 @@
  # gdbmhash is only built when 'libgdbm.so' is available
@@ -10,15 +22,3 @@ Index: config/gen/makefiles/dynpmc.in
    dynlexpad \
    foo \
    rotest \
-Index: src/call_list.txt
-===================================================================
---- src/call_list.txt	(revision 26026)
-+++ src/call_list.txt	(working copy)
-@@ -459,3 +459,7 @@
- i     pip
- i     piS
- S     i
-+
-+# dynpmc/lgp.pmc
-+v JOII
-+I JOII

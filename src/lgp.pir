@@ -1,12 +1,14 @@
 # comments with @ char after # are used to create debug code variant
 # see utils\todebug.pl and compare src\lgp.pir with src\lgp-debug.pir
 
-# load src/dynmpc/lgp.pmc
-.loadlib "lgp"
-
 .sub main :main
-    get_params "(0)", $P10 # get command line options pmc
+    get_params "0", $P10 # get command line options pmc
 
+    # load src/dynmpc/lgp.pmc
+    .local pmc lib
+    lib = loadlib "lgp"
+    unless lib goto LGP_LIB_NOT_LOADED 
+    
     # get LGP dynclass
     $I0 = find_type "LGP"
     if $I0 == 0 goto FIND_TYPE_ERR
@@ -80,7 +82,6 @@ PARAMS_DONE:
     set I0, 11          # set correct output [ 11 ]
     set I4, 0           # null fitness register
     bsr ADD_PFITNESS    # add this evaluation partial fitness to fitness (I4)
-    save I4
 
     # dataset part 1
     set I0, 3
@@ -89,9 +90,7 @@ PARAMS_DONE:
     set I3, 0
     bsr INDI_CORE
     set I0, 12
-    restore I4          # restore incomplete fitness value
     bsr ADD_PFITNESS
-    save I4
 
     # dataset part 2
     set I0, 3
@@ -100,9 +99,7 @@ PARAMS_DONE:
     set I3, 0
     bsr INDI_CORE
     set I0, 14
-    restore I4
     bsr ADD_PFITNESS
-    save I4
 
     # dataset part 3
     set I0, 9
@@ -111,7 +108,6 @@ PARAMS_DONE:
     set I3, 0
     bsr INDI_CORE
     set I0, 22
-    restore I4
     bsr ADD_PFITNESS
 
     pop_eh                  # remove exception handler
@@ -509,6 +505,11 @@ ret
 
 
 # errors
+
+LGP_LIB_NOT_LOADED:
+    print "lgp library not loaded\n"
+    end 
+    
 FIND_TYPE_ERR:
     print "find_type for LGP failed\n"
     end

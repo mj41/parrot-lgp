@@ -3,19 +3,40 @@ use warnings;
 
 use lib 'parrot/lib';
 use Carp qw(carp croak verbose);
-use Data::Dump qw(dump);
+use Data::Dumper;
 
 use Parrot::Op;
 use Parrot::Oplib::core;
+
+my $to_c = $ARGV[0];
 
 my $ops;
 my %names;
 
 $ops->{OPS} = $Parrot::OpLib::core::ops;
-# print dump( $ops ); exit;
+# print Dumper( $ops ); exit;
+
+my $allowed_ops = {
+    abs_i => 1,
+    abs_i_i => 1,
+    add_i_i => 1,
+    add_i_i_i => 1,
+    dec_i => 1,
+    div_i_i => 1,
+    div_i_i_i => 1,
+    inc_i => 1,
+    mul_i_i => 1,
+    mul_i_i_i => 1,
+    sub_i_i => 1,
+    sub_i_i_i => 1,
+    exchange_i_i => 1,
+    set_i_i => 1,
+    null_i => 1,
+};
 
 my $num = 0;
 foreach my $op ( @{ $Parrot::OpLib::core::ops } ) {
+    #print Dumper( $op );
     my $full_name = $op->full_name;
     my $jump      = $op->jump || 0;
     my $arg_count = $op->size - 1;
@@ -32,7 +53,12 @@ foreach my $op ( @{ $Parrot::OpLib::core::ops } ) {
         }
     }
 
-    if ( $raw_i_type && !$jump && $flags eq ':base_core'  ) {
+    if ( $raw_i_type && !$jump && (exists $flags->{base_core})  ) {
+        if ( $to_c ) {
+            print "    ";
+            # TODO, output/input args
+            print "// " unless exists $allowed_ops->{$full_name};
+        }
         print "$code, // $num ... $full_name: ";
         foreach my $arg_num ( 0..$arg_count-1 ) {
             print ", " if $arg_num > 0;
@@ -41,7 +67,7 @@ foreach my $op ( @{ $Parrot::OpLib::core::ops } ) {
         }
 #        print ", arg_count:$arg_count, flags: $flags, jump:$jump";
         print "\n";
-#        print dump( $op );
+#        print Dumper( $op );
         $num++;
     }
 

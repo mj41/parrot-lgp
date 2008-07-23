@@ -37,9 +37,9 @@ See
 * apply ./parrot-lgp/src/parrot.patch on ./parrot
 ** you can use TortoiseSVN on Windows - right mouse button on "parrot", then "apply patch" and right mouse button and "patch all"
 
-* compile parrot (use mingw32-make on windows)
+* compile parrot (use 'mingw32-make' instead of 'make' on windows)
  lgp-devel> cd parrot
- parrot> perl Configure.pl
+ parrot> perl Configure.pl --optimize
  parrot> make
 
 * run

@@ -226,19 +226,20 @@ ret
 
 
 F_RUN:
-    inum = 0
+    .local int run_num 
+    run_num = 0
     .local int ofit0, ofit1, nfit2, nfit3
     .local int olen0, olen1, nlen2, nlen3
     .local pmc parents
-    .local int max_inum
-    max_inum = pop_size * 50                     #@ max_inum = pop_size * 10
+    .local int max_run_num
+    max_run_num = pop_size * 50                     #@ max_run_num = pop_size * 10
     print "max fights:"
-    print max_inum
+    print max_run_num
     print "\n"
 
 F_NEXT_RUN:
 #@    print "running "
-#@    print inum
+#@    print run_num
 #@    print "\n"
 
     # 0 is worst, 3 is best (less fitness)
@@ -412,32 +413,32 @@ F_RUN_B2:
 F_SKIP_LT2:
 
 #@    print "running "
-#@    print inum
+#@    print run_num
 #@    print " [ok]\n\n"
 
-    inc inum
+    inc run_num
 
-    i = inum % pop_size
-    if i != 0 goto SKIP_PRINT_INUM
-    print "gen "
-    i = inum / pop_size
+    i = run_num % pop_size
+    if i != 0 goto SKIP_PRINT_RUN_NUM
+    print "run "
+    i = run_num / pop_size
     print i
     print ", fights "
-    print inum
-    print " ( max gen "
-    i = max_inum / pop_size
+    print run_num
+    print " ( max runs "
+    i = max_run_num / pop_size
     print i
     print ", max fights "
-    print max_inum
+    print max_run_num
     print " )\n"
 #@    # print population
 #@    i = pop_size * 1
-#@    i = inum % i
-#@    if i != 0 goto SKIP_PRINT_INUM
+#@    i = run_num % i
+#@    if i != 0 goto SKIP_PRINT_RUN_NUM
 #@    bsr PRINT_BEST # debug
 #@    bsr PRINT_POPULATION # debug
-SKIP_PRINT_INUM:
-    if inum < max_inum goto F_NEXT_RUN
+SKIP_PRINT_RUN_NUM:
+    if run_num < max_run_num goto F_NEXT_RUN
     print "\n"
 ret
 

@@ -1,0 +1,206 @@
+== First prototype ==
+[[parrot-lgp]] params:
+* population size: 50.000
+* max generations: 50
+* max individual length: 50 "bytes" (e.g. 25 two byte length instructions)
+* input/output dataset
+** input registers: I0, I1, I2
+** output registers: I3
+** dataset:
+<pre>
+ [ [ 3, 2, 1 ], [ 11 ] ],
+ [ [ 3, 3, 1 ], [ 12 ] ], 
+ [ [ 3, 3, 3 ], [ 14 ] ], 
+ [ [ 9, 5, 3 ], [ 22 ] ], 
+   ----------    ----
+        |         |
+      input      output
+   (I0,I1,I2)     (I3)
+</pre>
+
+* allowed instructions
+<pre>
+496, // 20 ... abs_i: i(io)
+498, // 21 ... abs_i_i: i(o), i(i)
+503, // 22 ... add_i_i: i(io), i(i)
+507, // 23 ... add_i_i_i: i(o), i(i), i(i)
+519, // 25 ... dec_i: i(io)
+522, // 26 ... div_i_i: i(io), i(i)
+526, // 27 ... div_i_i_i: i(o), i(i), i(i)
+550, // 30 ... inc_i: i(io)
+563, // 33 ... mul_i_i: i(io), i(i)
+567, // 34 ... mul_i_i_i: i(o), i(i), i(i)
+583, // 37 ... sub_i_i: i(io), i(i)
+587, // 38 ... sub_i_i_i: i(o), i(i), i(i)
+810, // 39 ... exchange_i_i: i(io), i(io)
+814, // 40 ... set_i_i: i(o), i(i)
+917, // 41 ... null_i: i(o)
+
+1, // 27 .. noop
+16 // 28 .. ret
+</pre>
+E.g. add_i_i means "Increase $1 by the amount in $2.". See [http://www.parrotcode.org/docs/ops/ Parrot instructions/opcodes].
+
+* fitness function
+** step 1) minimalize SUM( (correct_output-actual_individual_output)^2 )
+** step 2) minimalize individual_length
+
+The goal of parrot-lgp is to find the best (by fitness function) program (individual, symbolic regresion function) whitch compute output data from input data (for all rows in dataset) usign allowed instructions.
+
+After 2 minutes on 2GHz, 512 MB RAM computer, if you are lucky, you get output similar to:
+<pre>
+...
+gen 49, fights 12250000 ( max gen 50, max fights 12500000 )
+gen 50, fights 12500000 ( max gen 50, max fights 12500000 )
+run [ok]
+
+this run best indi: inum=31336, fitness=0, len=18, code:
+  0 +2   0 147e674  550 inc_i I1
+  1 +2   2 147e67c  550 inc_i I0
+  2 +2   4 147e684  550 inc_i I0
+  3 +2   6 147e68c  550 inc_i I2
+  4 +2   8 147e694  550 inc_i I2
+  5 +3  10 147e69c  503 add_i_i I0, I1
+  6 +4  13 147e6a8  507 add_i_i_i I3, I2, I0
+  7 +1  17 147e6b8   16 ret
+</pre>
+
+The best individual is, after rewrited to math by hand, regression function <code>I0 + I1 + I2 + 5</code>. See dataset
+ [ [ 3, 2, 1 ], [ 11 ] ], # 3 + 2 + 1 + 5 = 11
+ [ [ 3, 3, 1 ], [ 12 ] ], # 3 + 3 + 1 + 5 = 12
+ [ [ 3, 3, 3 ], [ 14 ] ], # 3 + 3 + 3 + 5 = 14
+ [ [ 9, 5, 3 ], [ 22 ] ], # 9 + 5 + 3 + 5 = 22
+
+== Algorithm and speed ==
+* initialization compute fitness for all randomly generated indviduals, it means evaluate each individual for each input set and compute fitness function from results
+* 50.000 population size * 50 generations / 115 seconds (parrot-lgp r79) = cca 21.700 runs/second
+each run contains of:
+* randomly select 4 individuals from population
+* sort them by fitness, indi0 is the worst, indi3 is the best (smaller fitness value)
+* mutate indi2
+* if mutated indi2 is better than indi0 then replace indi2 with new mutated indi2
+* isn't new indi2 better then best_indi
+* mutate indi3
+* if mutated indi3 is better than indi1 then replace indi3 with new mutated indi3
+* isn't new indi3 better then best_indi
+So, each run do 2 fitness evaluation. When we add another from initialization, then 2 * 21.700  + ( 50.000 / 115 ) = 43.400 + 430 = 
+
+'''44.260 individual evaluation per second'''
+* on Intel Pentium M, 1.86 GHz, 512 MB RAM
+* each evaluation for full dataset (4 data rows)
+* max individual length 50 bytes, population size 50.000
+
+== Another runs results ==
+Some solutions founded in different runs:
+
+Fitness 0:
+<pre>
+this run best indi: inum=2387, fitness=0, len=18, code:
+  0 +2   0 93acfc  550 inc_i I1
+  1 +2   2 93ad04  550 inc_i I0
+  2 +2   4 93ad0c  550 inc_i I2
+  3 +2   6 93ad14  550 inc_i I1
+  4 +2   8 93ad1c  550 inc_i I0
+  5 +3  10 93ad24  503 add_i_i I0, I1
+  6 +4  13 93ad30  507 add_i_i_i I3, I0, I2
+  7 +1  17 93ad40   16 ret
+
+this run best indi: inum=19826, fitness=0, len=18, code:
+  0 +2   0 1003e64  550 inc_i I0
+  1 +2   2 1003e6c  550 inc_i I0
+  2 +2   4 1003e74  550 inc_i I1
+  3 +2   6 1003e7c  550 inc_i I1
+  4 +2   8 1003e84  550 inc_i I1
+  5 +4  10 1003e8c  507 add_i_i_i I3, I0, I2
+  6 +3  14 1003e9c  503 add_i_i I3, I1
+  7 +1  17 1003ea8   16 ret
+
+this run best indi: inum=31680, fitness=0, len=18, code:
+  0 +2   0 14a0ab4  550 inc_i I1
+  1 +4   2 14a0abc  507 add_i_i_i I3, I1, I2
+  2 +2   6 14a0acc  550 inc_i I3
+  3 +2   8 14a0ad4  550 inc_i I3
+  4 +2  10 14a0adc  550 inc_i I3
+  5 +2  12 14a0ae4  550 inc_i I3
+  6 +3  14 14a0aec  503 add_i_i I3, I0
+  7 +1  17 14a0af8   16 ret
+
+this run best indi: inum=2414, fitness=0, len=18, code:
+  0 +4   0 93d804  507 add_i_i_i I3, I1, I2
+  1 +3   4 93d814  503 add_i_i I3, I0
+  2 +2   7 93d820  550 inc_i I3
+  3 +2   9 93d828  550 inc_i I3
+  4 +2  11 93d830  550 inc_i I3
+  5 +2  13 93d838  550 inc_i I3
+  6 +2  15 93d840  550 inc_i I3
+  7 +1  17 93d848   16 ret
+</pre>
+
+Fitness 0, length 20:
+<pre>
+this run best indi: inum=16672, fitness=0, len=20, code:
+  0 +2   0 ec9bb4  550 inc_i I0
+  1 +2   2 ec9bbc  550 inc_i I2
+  2 +2   4 ec9bc4  550 inc_i I1
+  3 +3   6 ec9bcc  503 add_i_i I2, I0
+  4 +3   9 ec9bd8  503 add_i_i I1, I2
+  5 +2  12 ec9be4  550 inc_i I1
+  6 +3  14 ec9bec  810 exchange_i_i I1, I3
+  7 +2  17 ec9bf8  550 inc_i I3
+  8 +1  19 ec9c00   16 ret
+</pre>
+
+Fitness 1, length 23:
+<pre>
+this run best indi: inum=23092, fitness=1, len=23, code:
+  0 +2   0 1149394  550 inc_i I3
+  1 +2   2 114939c  550 inc_i I1
+  2 +3   4 11493a4  503 add_i_i I3, I0
+  3 +3   7 11493b0  503 add_i_i I3, I1
+  4 +3  10 11493bc  503 add_i_i I3, I1
+  5 +3  13 11493c8  522 div_i_i I2, I0
+  6 +3  16 11493d4  503 add_i_i I3, I2
+  7 +3  19 11493e0  503 add_i_i I3, I2
+  8 +1  22 11493ec   16 ret
+</pre>
+
+Fitness 3, length 14:
+<pre>
+this run best indi: inum=1625, fitness=3, len=14, code:
+  0 +2   0 8eee8c  550 inc_i I1
+  1 +2   2 8eee94  550 inc_i I1
+  2 +3   4 8eee9c  810 exchange_i_i I1, I3
+  3 +3   7 8eeea8  503 add_i_i I0, I3
+  4 +3  10 8eeeb4  503 add_i_i I3, I0
+  5 +1  13 8eeec0   16 ret
+</pre>
+
+
+== ChangeLog ==
+==== revison 44 ====
+* reduction operator now implemented
+* bug fixes
+
+==== revison 48 ====
+* insertion operator implemented
+
+ num of results found: 50
+ fitness mean: 0.000
+ length mean: 18.480
+
+==== revison 59 ====
+* code refactoring and cleanup
+
+==== revison 62 ====
+* divide by zero exceptions
+* added new ops
+ 514, // 26 ... div_i_i: i(io), i(i)
+ 518, // 27 ... div_i_i_i: i(o), i(i), i(i)
+
+==== revision 72-74 ====
+* more cleanups and docs
+
+==== revision 79 (23.7.2008) ====
+* updated to Parrot r29697
+* save and restore removed
+* code cleanup

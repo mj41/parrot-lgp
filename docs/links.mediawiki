@@ -1,0 +1,45 @@
+== Linear genetic programming ==
+* [http://en.wikipedia.org/wiki/Linear_genetic_programming Linear genetic programming], en.wikipedia.org
+* [https://eldorado.uni-dortmund.de/handle/2003/20098 On linear genetic programming], Markus Brameier, thesis, 18.1.2005
+* [http://www.aimlearning.com/ Discipulus™ Genetic-Programming Software], RML Technologies, Inc.
+** [http://www.aimlearning.com/aigp31.pdf Efficient Evolution of Machine Code for CISC Architectures using Blocks and Homologous Crossover], Peter Nordin,Wolfgang Banzhaf and Frank Francone
+* [http://www.cs.ubbcluj.ro/~cgrosan/030409_edited.pdf A Comparison of Several Linear Genetic Programming Techniques], Mihai Oltean, Crina Gro¸san
+* [http://www.cs.bham.ac.uk/~wbl/biblio/cache/http___www.cs.mun.ca__banzhaf_papers_eurogp02_dist.pdf Explicit Control of Diversity and Effective Variation Distance in Linear Genetic Programming], Markus Brameier and Wolfgang Banzhaf, 
+
+=== Bibliography entries === 
+* A Comparison of Several Linear Genetic Programming Techniques, Mihai Oltean, Crina Gro¸san, [http://www.cs.bham.ac.uk/~wbl/biblio/gp-html/MarkusBrameier.html Markus Brameier], cs.bham.ac.uk
+
+=== Parrot VM ===
+* [http://www.parrot.org/ parrot.org]
+* [[p6:Perl 6 and Parrot links|Perl 6 and Parrot links]]
+* [http://www.sidhe.org/~dan/blog/archives/000189.html Registers vs stacks for interpreter design], Dan Sugalski, 14.5.2003
+
+= In Czech =
+
+== Linearní genetické programování ==
+=== CZ ===
+* Mařík V., Štěpánková O., Lažanský J. a kol: Umělá inteligence 4, Academia, Praha, 2003, ISBN 80-200-1044-0.
+
+== Genetické programování ==
+=== CZ ===
+* [http://www.scienceworld.cz/sw.nsf/search?searchview&query=genetick%E9%20programov%E1n%ED* Genetické programování na ScienceWorld.cz]
+* [http://www.root.cz/clanek/1359 Potíže s genetickým programováním] a [http://www.root.cz/forum/diskuse.php4?clanek=1359&vlakno=0&stav=0&vse=Zobrazit+v%B9e diskuze]
+* [http://lucifer.fav.zcu.cz/uir/gen_alg/E_alg.htm Biologická podstata evolučních algoritmů]
+
+=== Různé ===
+* [http://liinwww.ira.uka.de/bibliography/Ai/genetic.programming.html vyhledávání], přes 3000 článků
+* [http://en.wikipedia.org/wiki/Category:Genetic_programming Category:Genetic_programming on en.wikipedia]
+
+=== Journals ===
+* [http://mitpress.mit.edu/catalog/item/default.asp?ttype=4&tid=25 Evolutionary Computation - MIT]
+* [http://mitpress.mit.edu/catalog/item/default.asp?ttype=4&tid=41 Artificial Life - MITPress]
+* [http://www.kluweronline.com/issn/1389-2576/contents Genetic Programming and Evolvable Machines]
+* [http://ieeexplore.ieee.org/xpl/RecentIssue.jsp?punumber=4235 IEEE Transactions on Evolutionary Computation]
+* [http://www.sciencedirect.com/science?_ob=JournalURL&_cdi=6570&_auth=y&_acct=C000032308&_version=1&_urlVersion=0&_userid=640830&md5=d88077babd71006c8e1a1b9351825075 sciencedirect.com]
+
+=== Courses ===
+* [http://www.inf.ed.ac.uk/teaching/courses/gagp/ www.inf.ed.ac.uk]
+* [http://www.eecs.tulane.edu/www/Buckles.Bill/ec.html www.eecs.tulane.edu]
+* [http://dynamics.org/Altenberg/UH_ICS/Overview691.Spring2004.html dynamics.org]
+* [http://www.mae.cornell.edu/mae650/ www.mae.cornell.edu]
+

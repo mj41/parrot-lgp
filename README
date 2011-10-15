@@ -1,1 +1,7 @@
-See http://pr.perl6.cz/parrot-lgp/
+parrot-lgp is linear genetic programming [1] implementation for  Parrot virtual machine [2]. 
+See documentation in docs/ directory.
+
+Project status: Really out of date. One of last commits updated parrot-lgp to Parrot r29697 (23.7.2008).
+
+[1] http://en.wikipedia.org/wiki/Linear_genetic_programming
+[2] http://en.wikipedia.org/wiki/Parrot_virtual_machine

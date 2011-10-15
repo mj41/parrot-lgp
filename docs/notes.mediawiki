@@ -1,0 +1,26 @@
+= Ashley Reid-Montanaro benchmarks =
+
+A CGPS is up to 2000 times faster than a GPS using Lisp - Peter Nordin and Wolfgang Banzhaf (1995). Evolving Turing-Complete Programs for a Register Machine with Self-modifying Code.  In Genetic Algorithms: Proceedings of the Sixth International Conference (ICGA95)
+
+== Intel CGPS vs. Koza Lisp ==
+From  Ashley Reid-Montanaro: A Compiling Genetic Programming System for the Intel Architecture
+
+* 5-parity problem - 24 times faster than Koza’s Lisp system
+
+=== Koza ===
+* 32 different binary numbers of length 5 as fitness cases for his GP system
+* the logical functions (AND, OR, NAND, NOR) 
+* With a population size of 96,000, a correct solution to the problem is evolved in 13 generations
+* 6,481 and 36,950 seconds
+* the function evolved is extremely complex, using 160 Lisp terminals
+* This function also makes extensive use of automatically defined functions (ADFs)
+
+=== Intel CGPS ===
+* the standard function set, consisting of all possible arithmetic and logical operations
+* a population size of 100,000, and a maximum program size of 10 instructions
+* a correct solution to the problem was found in 17 generations
+* 262 seconds on a Pentium III machine
+* The evolved solution was 9 instructions long and used two of the processor’s registers
+* A solution which only used one register was also evolved during another run, but required more space (20 instructions)
+
+

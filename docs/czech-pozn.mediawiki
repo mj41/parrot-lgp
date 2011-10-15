@@ -1,0 +1,45 @@
+=== Základní problém ===
+* v bytekódu se nedá zjistit zda na náhodně vybraném offsetu leží operační kód (číslo instrukce) nebo operand (číslo registru, konstatna, hodnota, ...)
+* interpret začíná od začátku, takže mu to nevadí
+* různá délka instrukcí bude problém pro
+** skoky na daný offset, offset nutno někdy upravit
+** mutace - náhrada kratší instrukce delší, při opaku možno použít noop
+** křížení - úpravy ofssetů u skoků
+* možné řešení
+** pomocné pole
+*** s informací co je operační kód a co operandy, kde jsou instrukce skoku, ...
+*** nebo aspoň s popisem kde začínají instrukce
+** upravit instrukce na jednotnou délku
+*** přidáním noop (pokud pak použijeme JIT, tak by to nemusel být problém)
+*** nebo přimo úpravou instrukcí, tj. všechny by dělaly např. goto +3
+
+=== Základní funkčnost ===
+* vyjímky, např. při dělení nulou
+* dokumentace - základ i anglicky, představení na irc.freenode.org #parrot
+
+=== Vylepšení ===
+* zbavení se inicializace přes init_done
+* dynamicky MAX_POP_SIZE, INDI_MAX_LEN nebo to bude pomalejší?
+* benchmarky na reálných příkladech
+* volání metod z kódu jedince (pro Santa-Fee Ant)
+* použití JIT (tam kde se jedinec spouští pro více vstupních hodnot, jako u sym. regrese, mravence, apod.)
+
+=== Asi velmi vzdálená budoucnost ===
+* použití vlastních ops a dynpmc
+* optimalizace na rychlost, generování, kompilace, spouštění
+* zprazení a rozmrazení (freeze/thaw) u PMC
+* paralelní běh na více strojích a víceprocesorových systémech
+* kompatibilita mezi verzemi Parrot (při přečíslování ops)
+
+== Otázky ==
+* Parrot - dynamický VM - výhody a nevýhody pro LGP?
+
+== Poznámky ==
+* konstanty - asi nejsou potřeba, stačí vhodne inicializovat registry
+* Parrot
+** register based, vhodné pro LGP
+** určen pro dynamické jazyk, možnost použití LGP z Perlu 6, Tcl, ...
+* generování jedinců v PIR a spouštění přes eval bylo příliš pomalé a byly tam memory leaks.
+
+== Související ==
+* [http://wiki.kn.vutbr.cz/mj/index.cgi?Build%20Parrot%20with%20MinGW  Build Parrot with MinGW] - návod jak si to zkompilovat Parrot pod WinXP s pomocí MinGW
